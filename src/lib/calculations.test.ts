@@ -6,6 +6,7 @@ import {
   calcPMT,
   buildSimulation,
 } from './calculations'
+import type { ScenarioResult } from './types'
 
 describe('monthlyRate', () => {
   it('converts 6% a.a. to monthly', () => {
@@ -96,5 +97,32 @@ describe('buildSimulation', () => {
       false
     )
     expect(pts.every(p => p.cenarioB >= 0)).toBe(true)
+  })
+})
+
+describe('edge cases', () => {
+  it('capitalAnnuity: r=0, n=300 returns renda * 300', () => {
+    expect(capitalAnnuity(10000, 0, 300)).toBe(3_000_000)
+  })
+
+  it('calcPMT: r_ac=0 returns (capital - patrimonio) / n', () => {
+    const { aporteMensal, metaJaAtingida } = calcPMT(1_200_000, 0, 0, 360)
+    expect(metaJaAtingida).toBe(false)
+    expect(aporteMensal).toBeCloseTo(1_200_000 / 360, 2)
+  })
+
+  it('calcPMT: negative gap (FV_patrimonio > capital) returns metaJaAtingida=true', () => {
+    const { metaJaAtingida } = calcPMT(500_000, 2_000_000, monthlyRate(6), 240)
+    expect(metaJaAtingida).toBe(true)
+  })
+
+  it('buildSimulation: cenarioB and cenarioC never go negative', () => {
+    const tiny: ScenarioResult = { nome: '', capitalNecessario: 1000, aporteMensal: 0, metaJaAtingida: false }
+    const pts = buildSimulation(tiny, tiny, tiny, {
+      rendaMensal: 100_000, idadeAtual: 65, idadeAposentadoria: 65,
+      patrimonioAtual: 1_000, rentabilidadeAcumulacao: 6,
+      rentabilidadeRetirada: 4, expectativaVida: 90,
+    }, false)
+    expect(pts.every(p => p.cenarioB >= 0 && p.cenarioC >= 0)).toBe(true)
   })
 })
