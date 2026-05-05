@@ -1,7 +1,7 @@
 # Calculadora de Aposentadoria — Design Spec
 
 **Data:** 2026-05-05  
-**Status:** Aprovado (revisado após code review)
+**Status:** Aprovado (revisado após 2ª rodada de code review)
 
 ---
 
@@ -66,9 +66,9 @@ interface ScenarioResult {
 
 interface SimulationDataPoint {
   idade: number;
-  cenarioA: number;            // patrimônio no Cenário A naquele ano
-  cenarioB: number;
-  cenarioC: number;
+  cenarioA: number | null;     // patrimônio no Cenário A naquele ano; null = cenário indefinido (ex.: Cenário A com r_ret=0)
+  cenarioB: number | null;
+  cenarioC: number | null;
 }
 
 interface CalculationResults {
@@ -178,24 +178,32 @@ A simulação produz um `SimulationDataPoint` por ano, combinando as três curva
 **Fase de acumulação** (do `idadeAtual` até `idadeAposentadoria`, usando `PMT_X` de cada cenário):
 
 ```
-# Para cada cenário X:
+# Para cada cenário X, se r_ac > 0:
 patrimônio(t+1) = patrimônio(t) × (1 + r_ac)^12
                 + PMT_X × ((1 + r_ac)^12 - 1) / r_ac
+
+# Se r_ac = 0:
+patrimônio(t+1) = patrimônio(t) + PMT_X × 12
 ```
 
-> Esta fórmula computa corretamente o rendimento intra-anual dos 12 aportes mensais, evitando a aproximação `PMT × 12` que subestima o resultado.
+> A fórmula principal computa corretamente o rendimento intra-anual dos 12 aportes mensais. O caso `r_ac = 0` usa a degeneração direta (sem rendimento, soma simples).
 
 **Fase de retirada** (do `idadeAposentadoria` até `max(90, expectativaVida)`, usando `rendaMensal`):
 
 ```
-# Para cada cenário X:
-patrimônio(t+1) = patrimônio(t) × (1 + r_ret)^12
-                - rendaMensal × ((1 + r_ret)^12 - 1) / r_ret
+# Para cada cenário X, se r_ret > 0:
+patrimônio(t+1) = max(0, patrimônio(t) × (1 + r_ret)^12
+                - rendaMensal × ((1 + r_ret)^12 - 1) / r_ret)
+
+# Se r_ret = 0:
+patrimônio(t+1) = max(0, patrimônio(t) - rendaMensal × 12)
 ```
 
-> Da mesma forma, os 12 saques mensais são tratados como uma anuidade, não como um lump sum anual.
+> Os 12 saques mensais são tratados como uma anuidade. O `max(0, ...)` impede patrimônio negativo — quando o portfólio é esgotado, os pontos subsequentes são fixados em 0 (não plotados como negativos). Isso afeta principalmente o Cenário B quando `expectativaVida > 90`, pois a simulação continua além do horizonte de B.
 
-**Estado "meta já atingida":** Se `metaJaAtingida = true` para um cenário, a linha do gráfico começa no `patrimonioAtual` na `idadeAtual` (sem aportes na fase de acumulação) e depois decai normalmente na fase de retirada.
+**Estado "meta já atingida":** Quando `metaJaAtingida = true` para um cenário, o `PMT_X = 0`, portanto a fase de acumulação usa a mesma fórmula acima com `PMT_X = 0` — o patrimônio cresce apenas pela taxa `r_ac`, sem aportes. Todos os `SimulationDataPoint` da fase de acumulação ainda são gerados normalmente; a distinção visual (sem depósitos) emerge do valor `PMT_X = 0`.
+
+**Cenário A com `r_ret = 0`:** Como o capital necessário é indefinido, os `SimulationDataPoint` do Cenário A recebem `cenarioA: null` — o Recharts omite pontos `null` automaticamente (a linha não é plotada).
 
 ---
 
@@ -243,17 +251,19 @@ patrimônio(t+1) = patrimônio(t) × (1 + r_ret)^12
 
 Quando `metaJaAtingida = true` em um cenário:
 - O card exibe "Meta já atingida! Seu patrimônio atual é suficiente." em vez do aporte
-- A linha do gráfico para aquele cenário começa no `patrimonioAtual` e mostra apenas a fase de retirada
-- A tabela (se aquele cenário estiver selecionado) exibe `Aporte: R$ 0,00` em todas as linhas da fase de acumulação
+- A linha do gráfico para aquele cenário mostra o patrimônio crescendo apenas pela taxa `r_ac` durante a acumulação (sem aportes), depois decaindo na retirada — isso emerge naturalmente de `PMT_X = 0` na simulação
+- A tabela (se aquele cenário estiver selecionado) exibe `Aporte: R$ 0,00` e `Saque: R$ 0,00` em todas as linhas da fase de acumulação; na fase de retirada exibe `Aporte: R$ 0,00` e `Saque: rendaMensal`
 
 ### Componentes
+
+O estado `selectedScenario: 'A' | 'B' | 'C'` vive em `App.tsx` (padrão `'A'`), pois tanto `ScenarioCards` quanto `SummaryTable` o consomem.
 
 | Componente | Responsabilidade |
 |------------|-----------------|
 | `InputForm` | Renderiza todos os inputs; emite `UserInputs` via callback `onChange: (inputs: UserInputs) => void` |
-| `ScenarioCards` | Recebe `CalculationResults` e `selectedScenario`; emite `onSelectScenario: (s: 'A' \| 'B' \| 'C') => void` |
-| `ProjectionChart` | Recebe `SimulationDataPoint[]` e `idadeAposentadoria`; renderiza gráfico Recharts |
-| `SummaryTable` | Recebe `SimulationDataPoint[]`, `selectedScenario` e os `ScenarioResult`s; exibe tabela do cenário selecionado |
+| `ScenarioCards` | Recebe `CalculationResults`, `selectedScenario: 'A' \| 'B' \| 'C'`; emite `onSelectScenario: (s: 'A' \| 'B' \| 'C') => void` |
+| `ProjectionChart` | Recebe `SimulationDataPoint[]` e `idadeAposentadoria: number`; renderiza gráfico Recharts |
+| `SummaryTable` | Recebe `SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Deriva fase de cada linha comparando `ponto.idade` com `inputs.idadeAposentadoria`; aporte = `results.cenarioX.aporteMensal` na acumulação e `0` na retirada; saque = `0` na acumulação e `inputs.rendaMensal` na retirada. |
 | `useCalculations` | Recebe `UserInputs`; retorna `CalculationResults \| null` (null se inputs inválidos) |
 | `calculations.ts` | Funções matemáticas puras e testáveis independentemente |
 
@@ -268,8 +278,8 @@ Quando `metaJaAtingida = true` em um cenário:
 | Idade de aposentadoria > 80 | Campo inválido (fora do intervalo permitido), resultados ocultos |
 | Expectativa de vida ≤ idade de aposentadoria | Campo inválido, resultados ocultos |
 | `r_ret = 0` no Cenário A | Card A exibe "Indefinido (capital infinito necessário)" |
-| `r_ret = 0` nos Cenários B e C | Calculado como `rendaMensal × n` (limite correto da fórmula) |
-| `r_ac = 0` | PMT calculado sem rendimento: `PMT = (C_X - patrimonioAtual) / n_ac` |
+| `r_ret = 0` nos Cenários B e C | Capital calculado como `rendaMensal × n`; na simulação do gráfico: `patrimônio(t+1) = max(0, patrimônio(t) - rendaMensal × 12)` |
+| `r_ac = 0` | PMT calculado sem rendimento: `PMT = (C_X - patrimonioAtual) / n_ac`; na simulação do gráfico: `patrimônio(t+1) = patrimônio(t) + PMT_X × 12` |
 | PMT negativo (patrimônio supera meta) | Tratado como `metaJaAtingida = true` |
 | Renda desejada = 0 | Campo inválido, resultados ocultos |
 
