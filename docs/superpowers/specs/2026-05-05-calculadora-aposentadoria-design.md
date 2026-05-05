@@ -1,7 +1,7 @@
 # Calculadora de Aposentadoria — Design Spec
 
 **Data:** 2026-05-05  
-**Status:** Aprovado (revisado após 4ª rodada de code review)
+**Status:** Aprovado (revisado após 5ª rodada de code review — pronto para implementação)
 
 ---
 
@@ -177,7 +177,7 @@ Senão (r_ac = 0):
 
 ### Dados para o gráfico (simulação ano a ano)
 
-A simulação produz um `SimulationDataPoint` por ano, combinando as três curvas num único array. Isso permite que o Recharts `LineChart` consuma um único `data` prop com três `<Line>` components.
+A simulação produz um `SimulationDataPoint` por ano, combinando as três curvas num único array. Isso permite que o Recharts `LineChart` consuma um único `data` prop com três `<Line>` components. O ponto inicial (`idade = idadeAtual`) tem `patrimônio = patrimonioAtual` para todos os cenários — é o valor antes de qualquer crescimento ou aporte.
 
 **Fase de acumulação** (do `idadeAtual` até `idadeAposentadoria`, usando `PMT_X` de cada cenário):
 
@@ -267,7 +267,7 @@ O estado `selectedScenario: 'A' | 'B' | 'C'` vive em `App.tsx` (padrão `'A'`), 
 | `InputForm` | Renderiza todos os inputs; emite `UserInputs` via callback `onChange: (inputs: UserInputs) => void` |
 | `ScenarioCards` | Recebe `results: CalculationResults`, `selectedScenario: 'A' \| 'B' \| 'C'`; emite `onSelectScenario: (s: 'A' \| 'B' \| 'C') => void` |
 | `ProjectionChart` | Recebe `simulacao: SimulationDataPoint[]` e `idadeAposentadoria: number`; renderiza gráfico Recharts |
-| `SummaryTable` | Recebe `simulacao: SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Fase: acumulação se `ponto.idade < inputs.idadeAposentadoria`, retirada se `ponto.idade >= inputs.idadeAposentadoria`. Patrimônio exibido é o valor ao final daquele ano (após aportes ou saques do período). Aporte = `results.cenarioX.aporteMensal` na acumulação, `R$ 0,00` na retirada. Saque = `R$ 0,00` na acumulação, `inputs.rendaMensal` na retirada. Quando `cenarioA = null` (Cenário A selecionado com `r_ret = 0`), a coluna Patrimônio exibe `"—"`. |
+| `SummaryTable` | Recebe `simulacao: SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Fase: acumulação se `ponto.idade < inputs.idadeAposentadoria`, retirada se `ponto.idade >= inputs.idadeAposentadoria`. Patrimônio exibido é o valor ao final daquele ano (após aportes ou saques do período). Aporte = `results.cenarioX.aporteMensal` na acumulação, `R$ 0,00` na retirada. Saque = `R$ 0,00` na acumulação, `inputs.rendaMensal` na retirada. Quando `cenarioA = null` (Cenário A selecionado com `r_ret = 0`), a coluna Patrimônio exibe `"—"`, a coluna Aporte exibe `"—"` e a coluna Saque exibe `inputs.rendaMensal` na fase de retirada e `"—"` na acumulação. |
 | `useCalculations` | Recebe `UserInputs`; retorna `CalculationResults \| null` (null se inputs inválidos). `App.tsx` oculta `ScenarioCards`, `ProjectionChart` e `SummaryTable` completamente quando o retorno é `null`. |
 | `calculations.ts` | Funções matemáticas puras e testáveis independentemente |
 
@@ -283,7 +283,7 @@ O estado `selectedScenario: 'A' | 'B' | 'C'` vive em `App.tsx` (padrão `'A'`), 
 | Expectativa de vida ≤ idade de aposentadoria | Campo inválido, resultados ocultos |
 | `r_ret = 0` no Cenário A | Card A exibe "Indefinido (capital infinito necessário)" |
 | `r_ret = 0` nos Cenários B e C | Capital calculado como `rendaMensal × n`; na simulação do gráfico: `patrimônio(t+1) = max(0, patrimônio(t) - rendaMensal × 12)` |
-| `r_ac = 0` | PMT calculado sem rendimento: `PMT = (C_X - patrimonioAtual) / n_ac`; na simulação do gráfico: `patrimônio(t+1) = patrimônio(t) + PMT_X × 12` |
+| `r_ac = 0` | PMT calculado sem rendimento: `PMT = (C_X - FV_patrimonio) / n_ac` (onde `FV_patrimonio = patrimonioAtual` quando `r_ac = 0`); na simulação do gráfico: `patrimônio(t+1) = patrimônio(t) + PMT_X × 12` |
 | PMT negativo (patrimônio supera meta) | Tratado como `metaJaAtingida = true` |
 | Renda desejada = 0 | Campo inválido, resultados ocultos |
 
