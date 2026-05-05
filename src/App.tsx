@@ -26,20 +26,20 @@ export default function App() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-bold text-gray-800">Calculadora de Aposentadoria</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Todos os valores em termos reais (já descontada a inflação)</p>
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-gradient-to-r from-blue-900 to-indigo-700 px-6 py-5 shadow-lg">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold text-white tracking-tight">Calculadora de Aposentadoria</h1>
+          <p className="text-sm text-blue-200 mt-1">Valores em termos reais · inflação já descontada</p>
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left column — inputs */}
           <div className="lg:w-80 shrink-0">
             <InputForm onChange={handleInputChange} />
           </div>
 
-          {/* Right column — results */}
           <div className="flex-1 flex flex-col gap-4">
             {results ? (
               <>
@@ -60,9 +60,10 @@ export default function App() {
                 />
               </>
             ) : (
-              <div className="flex items-center justify-center h-64 rounded-xl border-2 border-dashed border-gray-200 text-gray-400">
+              <div className="flex items-center justify-center h-64 rounded-xl border-2 border-dashed border-slate-200 bg-white text-slate-400">
                 <div className="text-center">
-                  <p className="text-lg font-medium">Preencha seus dados</p>
+                  <div className="text-4xl mb-3">📊</div>
+                  <p className="text-base font-semibold text-slate-500">Preencha seus dados</p>
                   <p className="text-sm mt-1">Os resultados aparecerão aqui</p>
                 </div>
               </div>

@@ -109,14 +109,18 @@ export default function InputForm({ onChange }: Props) {
         </div>
       </label>
 
-      <button
-        type="button"
-        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium w-fit"
-        onClick={() => setShowAdvanced(v => !v)}
-      >
-        <span>{showAdvanced ? '▼' : '▶'}</span>
-        Parâmetros avançados
-      </button>
+      <div className="relative flex items-center">
+        <div className="flex-1 border-t border-gray-200"></div>
+        <button
+          type="button"
+          className="mx-3 flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold bg-white px-1 transition-colors"
+          onClick={() => setShowAdvanced(v => !v)}
+        >
+          <span className="text-[10px]">{showAdvanced ? '▼' : '▶'}</span>
+          Parâmetros avançados
+        </button>
+        <div className="flex-1 border-t border-gray-200"></div>
+      </div>
 
       {showAdvanced && (
         <div className="flex flex-col gap-3 border-t border-gray-100 pt-3">

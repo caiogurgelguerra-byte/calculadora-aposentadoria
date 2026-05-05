@@ -7,9 +7,39 @@ interface Props {
 }
 
 const SCENARIO_STYLES = {
-  A: { border: 'border-blue-500',  bg: 'bg-blue-50',  text: 'text-blue-700',  badge: 'bg-blue-500' },
-  B: { border: 'border-green-500', bg: 'bg-green-50', text: 'text-green-700', badge: 'bg-green-500' },
-  C: { border: 'border-orange-500',bg: 'bg-orange-50',text: 'text-orange-700',badge: 'bg-orange-500' },
+  A: {
+    border: 'border-blue-500',
+    selectedBg: 'bg-gradient-to-br from-blue-50 to-indigo-100',
+    text: 'text-blue-700',
+    subtext: 'text-blue-400',
+    badge: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+    icon: '∞',
+    iconColor: 'text-blue-300',
+    iconSelectedColor: 'text-blue-500',
+    shadow: 'shadow-blue-100',
+  },
+  B: {
+    border: 'border-emerald-500',
+    selectedBg: 'bg-gradient-to-br from-emerald-50 to-green-100',
+    text: 'text-emerald-700',
+    subtext: 'text-emerald-400',
+    badge: 'bg-gradient-to-r from-emerald-500 to-green-600',
+    icon: '90',
+    iconColor: 'text-emerald-200',
+    iconSelectedColor: 'text-emerald-400',
+    shadow: 'shadow-emerald-100',
+  },
+  C: {
+    border: 'border-orange-500',
+    selectedBg: 'bg-gradient-to-br from-orange-50 to-amber-100',
+    text: 'text-orange-700',
+    subtext: 'text-orange-400',
+    badge: 'bg-gradient-to-r from-orange-500 to-amber-500',
+    icon: '♡',
+    iconColor: 'text-orange-200',
+    iconSelectedColor: 'text-orange-400',
+    shadow: 'shadow-orange-100',
+  },
 }
 
 function fmt(value: number): string {
@@ -32,22 +62,38 @@ function Card({ id, nome, capitalNecessario, aporteMensal, metaJaAtingida, isUnd
   return (
     <button
       onClick={onSelect}
-      className={`flex-1 rounded-xl border-2 p-4 text-left transition-all cursor-pointer
-        ${selected ? `${s.border} ${s.bg}` : 'border-gray-200 bg-white hover:border-gray-300'}`}
+      className={`flex-1 rounded-xl border-2 p-4 text-left transition-all duration-200 cursor-pointer
+        ${selected
+          ? `${s.border} ${s.selectedBg} shadow-lg ${s.shadow} scale-[1.02]`
+          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md hover:scale-[1.01]'
+        }`}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`text-xs font-bold text-white px-2 py-0.5 rounded-full ${s.badge}`}>{id}</span>
-        <span className="text-xs font-medium text-gray-500 leading-tight">{nome}</span>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-bold text-white px-2 py-0.5 rounded-full ${s.badge}`}>{id}</span>
+          <span className="text-xs font-medium text-gray-500 leading-tight">{nome}</span>
+        </div>
+        <span className={`text-2xl font-bold leading-none transition-colors ${selected ? s.iconSelectedColor : s.iconColor}`}>
+          {s.icon}
+        </span>
       </div>
 
       {isUndefined ? (
-        <p className="text-sm font-semibold text-gray-500">Indefinido (capital infinito necessário)</p>
+        <p className="text-sm font-semibold text-gray-400">Capital infinito necessário</p>
       ) : metaJaAtingida ? (
-        <p className={`text-sm font-semibold ${s.text}`}>Meta já atingida! Seu patrimônio atual é suficiente.</p>
+        <div>
+          <p className={`text-sm font-bold ${s.text}`}>Meta já atingida!</p>
+          <p className="text-xs text-gray-400 mt-0.5">Seu patrimônio atual é suficiente.</p>
+        </div>
       ) : (
         <>
-          <p className={`text-2xl font-bold ${s.text}`}>{fmt(aporteMensal)}<span className="text-sm font-normal">/mês</span></p>
-          <p className="text-xs text-gray-400 mt-1">Capital necessário: {fmt(capitalNecessario)}</p>
+          <p className={`text-2xl font-bold ${s.text}`}>
+            {fmt(aporteMensal)}
+            <span className="text-sm font-normal text-gray-400">/mês</span>
+          </p>
+          <p className={`text-xs mt-1 ${selected ? s.subtext : 'text-gray-400'}`}>
+            Capital necessário: {fmt(capitalNecessario)}
+          </p>
         </>
       )}
     </button>
