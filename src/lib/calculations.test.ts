@@ -101,28 +101,30 @@ describe('buildSimulation', () => {
 })
 
 describe('edge cases', () => {
-  it('capitalAnnuity: r=0, n=300 returns renda * 300', () => {
-    expect(capitalAnnuity(10000, 0, 300)).toBe(3_000_000)
+  it('capitalAnnuity: renda=0 always returns 0', () => {
+    expect(capitalAnnuity(0, monthlyRate(6), 300)).toBe(0)
+    expect(capitalAnnuity(0, 0, 300)).toBe(0)
   })
 
-  it('calcPMT: r_ac=0 returns (capital - patrimonio) / n', () => {
-    const { aporteMensal, metaJaAtingida } = calcPMT(1_200_000, 0, 0, 360)
+  it('calcPMT: r_ac=0 with non-zero patrimonio returns (capital - patrimonio) / n', () => {
+    const { aporteMensal, metaJaAtingida } = calcPMT(1_200_000, 200_000, 0, 360)
     expect(metaJaAtingida).toBe(false)
-    expect(aporteMensal).toBeCloseTo(1_200_000 / 360, 2)
+    expect(aporteMensal).toBeCloseTo((1_200_000 - 200_000) / 360, 2)
   })
 
   it('calcPMT: negative gap (FV_patrimonio > capital) returns metaJaAtingida=true', () => {
-    const { metaJaAtingida } = calcPMT(500_000, 2_000_000, monthlyRate(6), 240)
-    expect(metaJaAtingida).toBe(true)
+    const result = calcPMT(500_000, 2_000_000, monthlyRate(6), 240)
+    expect(result.metaJaAtingida).toBe(true)
+    expect(result.aporteMensal).toBe(0)
   })
 
-  it('buildSimulation: cenarioB and cenarioC never go negative', () => {
+  it('buildSimulation: patrimonio never goes negative in withdrawal phase', () => {
     const tiny: ScenarioResult = { nome: '', capitalNecessario: 1000, aporteMensal: 0, metaJaAtingida: false }
     const pts = buildSimulation(tiny, tiny, tiny, {
       rendaMensal: 100_000, idadeAtual: 65, idadeAposentadoria: 65,
       patrimonioAtual: 1_000, rentabilidadeAcumulacao: 6,
       rentabilidadeRetirada: 4, expectativaVida: 90,
     }, false)
-    expect(pts.every(p => p.cenarioB >= 0 && p.cenarioC >= 0)).toBe(true)
+    expect(pts.every(p => p.cenarioA !== null && p.cenarioA >= 0 && p.cenarioB >= 0 && p.cenarioC >= 0)).toBe(true)
   })
 })
