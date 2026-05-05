@@ -1,7 +1,7 @@
 # Calculadora de Aposentadoria — Design Spec
 
 **Data:** 2026-05-05  
-**Status:** Aprovado (revisado após 3ª rodada de code review)
+**Status:** Aprovado (revisado após 4ª rodada de code review)
 
 ---
 
@@ -169,7 +169,7 @@ Senão, se r_ac > 0:
   PMT_X = (C_X - FV_patrimonio) × r_ac / ((1 + r_ac)^n_ac - 1)
 
 Senão (r_ac = 0):
-  PMT_X = (C_X - patrimonioAtual) / n_ac   # FV_patrimonio = patrimonioAtual quando r_ac=0
+  PMT_X = (C_X - FV_patrimonio) / n_ac     # FV_patrimonio = patrimonioAtual quando r_ac=0
 ```
 
 > Os cards exibirão `PMT_A`, `PMT_B` e `PMT_C` respectivamente — valores distintos para cada cenário.
@@ -266,8 +266,8 @@ O estado `selectedScenario: 'A' | 'B' | 'C'` vive em `App.tsx` (padrão `'A'`), 
 |------------|-----------------|
 | `InputForm` | Renderiza todos os inputs; emite `UserInputs` via callback `onChange: (inputs: UserInputs) => void` |
 | `ScenarioCards` | Recebe `results: CalculationResults`, `selectedScenario: 'A' \| 'B' \| 'C'`; emite `onSelectScenario: (s: 'A' \| 'B' \| 'C') => void` |
-| `ProjectionChart` | Recebe `SimulationDataPoint[]` e `idadeAposentadoria: number`; renderiza gráfico Recharts |
-| `SummaryTable` | Recebe `SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Fase: acumulação se `ponto.idade < inputs.idadeAposentadoria`, retirada se `ponto.idade >= inputs.idadeAposentadoria`. Aporte = `results.cenarioX.aporteMensal` na acumulação, `R$ 0,00` na retirada. Saque = `R$ 0,00` na acumulação, `inputs.rendaMensal` na retirada. |
+| `ProjectionChart` | Recebe `simulacao: SimulationDataPoint[]` e `idadeAposentadoria: number`; renderiza gráfico Recharts |
+| `SummaryTable` | Recebe `simulacao: SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Fase: acumulação se `ponto.idade < inputs.idadeAposentadoria`, retirada se `ponto.idade >= inputs.idadeAposentadoria`. Patrimônio exibido é o valor ao final daquele ano (após aportes ou saques do período). Aporte = `results.cenarioX.aporteMensal` na acumulação, `R$ 0,00` na retirada. Saque = `R$ 0,00` na acumulação, `inputs.rendaMensal` na retirada. Quando `cenarioA = null` (Cenário A selecionado com `r_ret = 0`), a coluna Patrimônio exibe `"—"`. |
 | `useCalculations` | Recebe `UserInputs`; retorna `CalculationResults \| null` (null se inputs inválidos). `App.tsx` oculta `ScenarioCards`, `ProjectionChart` e `SummaryTable` completamente quando o retorno é `null`. |
 | `calculations.ts` | Funções matemáticas puras e testáveis independentemente |
 
