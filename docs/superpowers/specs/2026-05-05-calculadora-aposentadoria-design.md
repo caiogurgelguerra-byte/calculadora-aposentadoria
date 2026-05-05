@@ -1,7 +1,7 @@
 # Calculadora de Aposentadoria — Design Spec
 
 **Data:** 2026-05-05  
-**Status:** Aprovado (revisado após 2ª rodada de code review)
+**Status:** Aprovado (revisado após 3ª rodada de code review)
 
 ---
 
@@ -65,10 +65,10 @@ interface ScenarioResult {
 }
 
 interface SimulationDataPoint {
-  idade: number;
-  cenarioA: number | null;     // patrimônio no Cenário A naquele ano; null = cenário indefinido (ex.: Cenário A com r_ret=0)
-  cenarioB: number | null;
-  cenarioC: number | null;
+  idade: number;               // um ponto por ano; granularidade anual garantida pela simulação
+  cenarioA: number | null;     // null somente quando Cenário A é indefinido (r_ret=0); sempre number caso contrário
+  cenarioB: number;            // sempre number (Cenários B e C nunca são indefinidos)
+  cenarioC: number;
 }
 
 interface CalculationResults {
@@ -158,18 +158,22 @@ C_C = rendaMensal × [(1 - (1 + r_ret)^-n_C) / r_ret]
 Cada cenário tem seu próprio `PMT` calculado a partir do seu respectivo capital necessário (`C_A`, `C_B`, `C_C`). O patrimônio atual cresce na fase de acumulação usando `r_ac`.
 
 ```
-n_ac = (idadeAposentadoria - idadeAtual) × 12
+n_ac = (idadeAposentadoria - idadeAtual) × 12   # sempre > 0 (validação garante idadeAposentadoria > idadeAtual)
 FV_patrimonio = patrimonioAtual × (1 + r_ac)^n_ac
 
 # Para cada cenário X (A, B ou C):
 Se FV_patrimonio >= C_X:
   → metaJaAtingida = true, aporteMensal = 0
 
-Senão:
+Senão, se r_ac > 0:
   PMT_X = (C_X - FV_patrimonio) × r_ac / ((1 + r_ac)^n_ac - 1)
+
+Senão (r_ac = 0):
+  PMT_X = (C_X - patrimonioAtual) / n_ac   # FV_patrimonio = patrimonioAtual quando r_ac=0
 ```
 
 > Os cards exibirão `PMT_A`, `PMT_B` e `PMT_C` respectivamente — valores distintos para cada cenário.
+> `calculations.ts` assume `n_ac > 0` (garantido pela validação de inputs); não é necessário guardar contra `n_ac = 0` dentro das funções puras.
 
 ### Dados para o gráfico (simulação ano a ano)
 
@@ -188,7 +192,7 @@ patrimônio(t+1) = patrimônio(t) + PMT_X × 12
 
 > A fórmula principal computa corretamente o rendimento intra-anual dos 12 aportes mensais. O caso `r_ac = 0` usa a degeneração direta (sem rendimento, soma simples).
 
-**Fase de retirada** (do `idadeAposentadoria` até `max(90, expectativaVida)`, usando `rendaMensal`):
+**Fase de retirada** (de `idadeAposentadoria` até `max(90, expectativaVida)`, **inclusive**, usando `rendaMensal`):
 
 ```
 # Para cada cenário X, se r_ret > 0:
@@ -201,9 +205,9 @@ patrimônio(t+1) = max(0, patrimônio(t) - rendaMensal × 12)
 
 > Os 12 saques mensais são tratados como uma anuidade. O `max(0, ...)` impede patrimônio negativo — quando o portfólio é esgotado, os pontos subsequentes são fixados em 0 (não plotados como negativos). Isso afeta principalmente o Cenário B quando `expectativaVida > 90`, pois a simulação continua além do horizonte de B.
 
-**Estado "meta já atingida":** Quando `metaJaAtingida = true` para um cenário, o `PMT_X = 0`, portanto a fase de acumulação usa a mesma fórmula acima com `PMT_X = 0` — o patrimônio cresce apenas pela taxa `r_ac`, sem aportes. Todos os `SimulationDataPoint` da fase de acumulação ainda são gerados normalmente; a distinção visual (sem depósitos) emerge do valor `PMT_X = 0`.
+**Estado "meta já atingida":** Quando `metaJaAtingida = true` para um cenário, `PMT_X = 0`, portanto a fase de acumulação usa a mesma fórmula acima com `PMT_X = 0` — o patrimônio cresce apenas pela taxa `r_ac`, sem aportes. `SimulationDataPoint.cenarioX` é sempre um `number` (nunca `null`) nesse estado. Se `r_ac = 0` e `metaJaAtingida = true` simultaneamente, a fórmula vira `patrimônio(t+1) = patrimônio(t) + 0 × 12 = patrimônio(t)` — linha plana, que é o comportamento correto.
 
-**Cenário A com `r_ret = 0`:** Como o capital necessário é indefinido, os `SimulationDataPoint` do Cenário A recebem `cenarioA: null` — o Recharts omite pontos `null` automaticamente (a linha não é plotada).
+**Cenário A com `r_ret = 0`:** Como o capital necessário é indefinido, `cenarioA` recebe `null` em todos os `SimulationDataPoint`. Quando o array inteiro de `cenarioA` é `null`, o `<Line dataKey="cenarioA">` do Recharts não renderiza nenhum ponto — a linha some do gráfico sem necessidade de remoção condicional do JSX.
 
 ---
 
@@ -261,10 +265,10 @@ O estado `selectedScenario: 'A' | 'B' | 'C'` vive em `App.tsx` (padrão `'A'`), 
 | Componente | Responsabilidade |
 |------------|-----------------|
 | `InputForm` | Renderiza todos os inputs; emite `UserInputs` via callback `onChange: (inputs: UserInputs) => void` |
-| `ScenarioCards` | Recebe `CalculationResults`, `selectedScenario: 'A' \| 'B' \| 'C'`; emite `onSelectScenario: (s: 'A' \| 'B' \| 'C') => void` |
+| `ScenarioCards` | Recebe `results: CalculationResults`, `selectedScenario: 'A' \| 'B' \| 'C'`; emite `onSelectScenario: (s: 'A' \| 'B' \| 'C') => void` |
 | `ProjectionChart` | Recebe `SimulationDataPoint[]` e `idadeAposentadoria: number`; renderiza gráfico Recharts |
-| `SummaryTable` | Recebe `SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Deriva fase de cada linha comparando `ponto.idade` com `inputs.idadeAposentadoria`; aporte = `results.cenarioX.aporteMensal` na acumulação e `0` na retirada; saque = `0` na acumulação e `inputs.rendaMensal` na retirada. |
-| `useCalculations` | Recebe `UserInputs`; retorna `CalculationResults \| null` (null se inputs inválidos) |
+| `SummaryTable` | Recebe `SimulationDataPoint[]`, `selectedScenario: 'A' \| 'B' \| 'C'`, `results: CalculationResults` e `inputs: UserInputs`; exibe tabela do cenário selecionado. Fase: acumulação se `ponto.idade < inputs.idadeAposentadoria`, retirada se `ponto.idade >= inputs.idadeAposentadoria`. Aporte = `results.cenarioX.aporteMensal` na acumulação, `R$ 0,00` na retirada. Saque = `R$ 0,00` na acumulação, `inputs.rendaMensal` na retirada. |
+| `useCalculations` | Recebe `UserInputs`; retorna `CalculationResults \| null` (null se inputs inválidos). `App.tsx` oculta `ScenarioCards`, `ProjectionChart` e `SummaryTable` completamente quando o retorno é `null`. |
 | `calculations.ts` | Funções matemáticas puras e testáveis independentemente |
 
 ---
