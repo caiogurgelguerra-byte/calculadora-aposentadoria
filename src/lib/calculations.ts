@@ -21,6 +21,7 @@ export function calcPMT(
   rAc: number,
   nAc: number
 ): { aporteMensal: number; metaJaAtingida: boolean } {
+  if (nAc <= 0) return { aporteMensal: 0, metaJaAtingida: true }
   const fvPatrimonio = patrimonioAtual * Math.pow(1 + rAc, nAc)
   if (fvPatrimonio >= capitalNecessario) {
     return { aporteMensal: 0, metaJaAtingida: true }

@@ -73,6 +73,7 @@ describe('buildSimulation', () => {
     expect(pts[0].idade).toBe(30)
     expect(pts[0].cenarioB).toBe(50000)
     expect(pts[0].cenarioC).toBe(50000)
+    expect(pts[0].cenarioA).toBe(50000)
   })
   it('sets cenarioA null throughout when cenarioAUndefined = true', () => {
     const pts = buildSimulation(
