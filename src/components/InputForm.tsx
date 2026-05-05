@@ -27,6 +27,8 @@ function formatMoney(value: number): string {
 export default function InputForm({ onChange }: Props) {
   const [inputs, setInputs] = useState<UserInputs>(DEFAULTS)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [rendaMensalStr, setRendaMensalStr] = useState('')
+  const [patrimonioStr, setPatrimonioStr] = useState('')
 
   function update<K extends keyof UserInputs>(key: K, value: UserInputs[K]) {
     const next = { ...inputs, [key]: value }
@@ -47,8 +49,15 @@ export default function InputForm({ onChange }: Props) {
             inputMode="decimal"
             className="flex-1 outline-none text-sm"
             placeholder="10.000,00"
-            value={formatMoney(inputs.rendaMensal)}
-            onChange={e => update('rendaMensal', parseMoney(e.target.value))}
+            value={rendaMensalStr}
+            onChange={e => {
+              setRendaMensalStr(e.target.value)
+              update('rendaMensal', parseMoney(e.target.value))
+            }}
+            onBlur={() => {
+              const formatted = formatMoney(inputs.rendaMensal)
+              setRendaMensalStr(formatted)
+            }}
           />
         </div>
       </label>
@@ -87,8 +96,15 @@ export default function InputForm({ onChange }: Props) {
             inputMode="decimal"
             className="flex-1 outline-none text-sm"
             placeholder="0,00"
-            value={formatMoney(inputs.patrimonioAtual)}
-            onChange={e => update('patrimonioAtual', parseMoney(e.target.value))}
+            value={patrimonioStr}
+            onChange={e => {
+              setPatrimonioStr(e.target.value)
+              update('patrimonioAtual', parseMoney(e.target.value))
+            }}
+            onBlur={() => {
+              const formatted = formatMoney(inputs.patrimonioAtual)
+              setPatrimonioStr(formatted)
+            }}
           />
         </div>
       </label>
@@ -105,7 +121,7 @@ export default function InputForm({ onChange }: Props) {
       {showAdvanced && (
         <div className="flex flex-col gap-3 border-t border-gray-100 pt-3">
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-600">Rentabilidade real na acumulação (% a.a.)</span>
+            <span className="text-sm font-medium text-gray-600">Rentabilidade real estimada na acumulação (% a.a.)</span>
             <input
               type="number"
               step={0.1} min={0} max={30}
@@ -115,7 +131,7 @@ export default function InputForm({ onChange }: Props) {
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-600">Rentabilidade real na retirada (% a.a.)</span>
+            <span className="text-sm font-medium text-gray-600">Rentabilidade real estimada no resgate (% a.a.)</span>
             <input
               type="number"
               step={0.1} min={0} max={30}
