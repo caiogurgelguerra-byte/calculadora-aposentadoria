@@ -5,6 +5,7 @@ import InputForm from './components/InputForm'
 import ScenarioCards from './components/ScenarioCards'
 import ProjectionChart from './components/ProjectionChart'
 import SummaryTable from './components/SummaryTable'
+import ExplanationBox from './components/ExplanationBox'
 
 const DEFAULT_INPUTS: UserInputs = {
   rendaMensal: 0,
@@ -57,6 +58,11 @@ export default function App() {
                   selectedScenario={selectedScenario}
                   results={results}
                   inputs={inputs}
+                />
+                <ExplanationBox
+                  results={results}
+                  inputs={inputs}
+                  selectedScenario={selectedScenario}
                 />
               </>
             ) : (
