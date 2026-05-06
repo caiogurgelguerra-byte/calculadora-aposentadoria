@@ -9,9 +9,9 @@ Expandir a calculadora de aposentadoria existente em um portal financeiro chamad
 
 ## Stack
 
-React 18 + TypeScript + Vite + Tailwind CSS + Recharts + react-router-dom
+React 18 + TypeScript + Vite + Tailwind CSS + Recharts + **react-router-dom v6**
 
-A dependência `react-router-dom` será adicionada ao projeto existente.
+A dependência `react-router-dom` (v6) será adicionada ao projeto existente. Usar `<Routes>` / `<Route>` — não `<Switch>` (API v5).
 
 ## Estrutura de Pastas
 
@@ -33,8 +33,7 @@ src/
       ResultCard.tsx
       ComparisonTable.tsx
   components/
-    Layout.tsx                  ← shell com header persistente
-    Header.tsx
+    Layout.tsx                  ← shell com header persistente; Header é interno a Layout, não exportado separadamente
   hooks/
     aposentadoria/
       useCalculations.ts        ← hook existente movido para cá
@@ -43,6 +42,7 @@ src/
   lib/
     aposentadoria/              ← lógica de cálculo existente
       calculations.ts
+      calculations.test.ts      ← movido de src/lib/calculations.test.ts
       types.ts
     salario/                    ← nova lógica de cálculo
       calculations.ts
@@ -50,6 +50,8 @@ src/
       taxTables.ts              ← tabelas INSS/IRRF 2025 (ver nota de atualização)
       types.ts
 ```
+
+**Arquivo modificado (não movido):** `src/main.tsx` — envolver a aplicação com `<BrowserRouter>` do react-router-dom para habilitar o roteamento.
 
 ## Roteamento
 
@@ -62,8 +64,10 @@ src/
 ## Layout Compartilhado
 
 Um componente `<Layout>` envolve todas as páginas com:
-- **Header** contendo o nome "Seu Mapa Financeiro" e link para `/`
+- **Header interno** contendo o nome "Seu Mapa Financeiro" e link para `/`
 - Visual consistente com o estilo já estabelecido (gradiente, tipografia)
+
+`Header` não é um componente separado exportável — é parte interna de `Layout.tsx`.
 
 ## Home Page
 
@@ -98,12 +102,14 @@ Cards iniciais:
 
 **Dependentes:**
 - Número de dependentes (inteiro ≥ 0)
-- Cada dependente deduz R$ 189,59 da base do IRRF (valor 2025)
+- Cada dependente deduz R$ 189,59/mês da base do IRRF (valor 2025)
+- **Dependentes NÃO reduzem a base do IRRF do 13º salário** (lei específica para a tributação exclusiva na fonte do 13º)
 
 **13º Salário:**
 - Checkbox para incluir o cálculo
-- Mostra cálculo separado: INSS do 13º + IRRF do 13º (alíquota exclusiva na fonte)
-- Exibe valor líquido do 13º
+- O INSS do 13º é calculado com a mesma tabela progressiva aplicada ao valor bruto do 13º separadamente
+- O IRRF do 13º é calculado sobre `(13º bruto − INSS do 13º)` usando a tabela progressiva padrão — **sem dedução de dependentes**
+- Exibe: 13º bruto | INSS do 13º | IRRF do 13º | **13º líquido**
 
 **Comparativo:**
 - Tabela com faixas de salário bruto: R$1.500, R$2.000, R$3.000, R$5.000, R$8.000, R$10.000, R$15.000, R$20.000
@@ -118,32 +124,54 @@ Cards iniciais:
 // A reforma isenta salários até R$5.000/mês e altera as faixas acima disso.
 ```
 
-**INSS 2025** — alíquotas progressivas (4 faixas):
+**INSS 2025** — alíquotas progressivas (4 faixas, Portaria MPS 1.716/2024):
+
 | Faixa (R$) | Alíquota |
 |------------|----------|
 | Até 1.518,00 | 7,5% |
 | 1.518,01 – 2.793,88 | 9% |
 | 2.793,89 – 4.190,83 | 12% |
 | 4.190,84 – 8.157,41 | 14% |
-| Acima de 8.157,41 | Teto: R$ 908,85 |
 
-**IRRF 2025** — tabela progressiva (mesma de 2024):
+Para salários acima de R$8.157,41: aplicar as 4 faixas apenas até R$8.157,41 — o resultado é sempre o teto de **R$908,85**. Não modelar como quinta faixa.
+
+**IRRF 2025** — tabela progressiva (mesma de 2024, Receita Federal):
+
 | Base de cálculo (R$) | Alíquota | Parcela a deduzir |
 |----------------------|----------|-------------------|
 | Até 2.259,20 | Isento | — |
 | 2.259,21 – 2.826,65 | 7,5% | 169,44 |
 | 2.826,66 – 3.751,05 | 15% | 381,44 |
 | 3.751,06 – 4.664,68 | 22,5% | 662,77 |
-| Acima de 4.664,68 | 27,5% | 896,00 |
+| Acima de 4.664,68 | 27,5% | **884,96** |
+
+**Exemplo de cálculo verificado** (salário bruto R$5.000, 0 dependentes):
+- INSS: (1.518,00 × 7,5%) + (1.275,88 × 9%) + (1.396,95 × 12%) + (809,17 × 14%) = 113,85 + 114,83 + 167,63 + 113,28 = **R$509,59**
+- Base IRRF: 5.000,00 − 509,59 = R$4.490,41
+- IRRF: (4.490,41 × 22,5%) − 662,77 = 1.010,34 − 662,77 = **R$347,57**
+- Líquido: 5.000,00 − 509,59 − 347,57 = **R$4.142,84**
+
+Use este exemplo para validar a implementação antes de escrever os testes.
 
 ## Calculadora de Aposentadoria
 
-Sem nenhuma mudança funcional. Os arquivos serão movidos de `src/components/` e `src/lib/` para `src/calculators/aposentadoria/` e `src/lib/aposentadoria/` respectivamente, com imports atualizados.
+Sem nenhuma mudança funcional. Arquivos movidos:
+
+| De | Para |
+|----|------|
+| `src/components/*.tsx` | `src/calculators/aposentadoria/` |
+| `src/lib/calculations.ts` | `src/lib/aposentadoria/calculations.ts` |
+| `src/lib/calculations.test.ts` | `src/lib/aposentadoria/calculations.test.ts` |
+| `src/lib/types.ts` | `src/lib/aposentadoria/types.ts` |
+| `src/hooks/useCalculations.ts` | `src/hooks/aposentadoria/useCalculations.ts` |
+
+Todos os imports internos devem ser atualizados após a movimentação.
 
 ## Testes
 
-- `src/lib/salario/calculations.test.ts` com casos para: INSS progressivo, IRRF com e sem dependentes, 13º, comparativo de faixas
-- Seguir padrão de testes existente em `src/lib/calculations.test.ts`
+- `src/lib/salario/calculations.test.ts` com casos para: INSS progressivo, IRRF com e sem dependentes, 13º (sem dependentes), comparativo de faixas
+- Usar o exemplo verificado acima (R$5.000 bruto) como âncora numérica nos testes
+- Seguir padrão de testes existente em `src/lib/aposentadoria/calculations.test.ts` (após migração)
 
 ## Fora de Escopo
 
