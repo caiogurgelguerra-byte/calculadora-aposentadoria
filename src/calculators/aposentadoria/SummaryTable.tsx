@@ -1,4 +1,4 @@
-import type { SimulationDataPoint, CalculationResults, UserInputs } from '../lib/types'
+import type { SimulationDataPoint, CalculationResults, UserInputs } from '../../lib/aposentadoria/types'
 
 interface Props {
   simulacao: SimulationDataPoint[]

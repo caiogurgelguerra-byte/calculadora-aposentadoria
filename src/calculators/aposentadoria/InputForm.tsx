@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { UserInputs } from '../lib/types'
+import type { UserInputs } from '../../lib/aposentadoria/types'
 
 interface Props {
   onChange: (inputs: UserInputs) => void

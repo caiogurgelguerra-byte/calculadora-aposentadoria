@@ -1,4 +1,4 @@
-import type { CalculationResults, UserInputs } from '../lib/types'
+import type { CalculationResults, UserInputs } from '../../lib/aposentadoria/types'
 
 interface Props {
   results: CalculationResults

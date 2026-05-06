@@ -1,5 +1,5 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer } from 'recharts'
-import type { SimulationDataPoint } from '../lib/types'
+import type { SimulationDataPoint } from '../../lib/aposentadoria/types'
 
 interface Props {
   simulacao: SimulationDataPoint[]

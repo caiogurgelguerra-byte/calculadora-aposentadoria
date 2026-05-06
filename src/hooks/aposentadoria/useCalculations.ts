@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
-import type { UserInputs, CalculationResults, ScenarioResult } from '../lib/types'
+import type { UserInputs, CalculationResults, ScenarioResult } from '../../lib/aposentadoria/types'
 import {
   monthlyRate,
   capitalPerpetuidade,
   capitalAnnuity,
   calcPMT,
   buildSimulation,
-} from '../lib/calculations'
+} from '../../lib/aposentadoria/calculations'
 
 function isValid(inputs: UserInputs): boolean {
   const { rendaMensal, idadeAtual, idadeAposentadoria, expectativaVida } = inputs

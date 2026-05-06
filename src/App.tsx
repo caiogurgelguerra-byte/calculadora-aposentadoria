@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
-import type { UserInputs } from './lib/types'
-import { useCalculations } from './hooks/useCalculations'
-import InputForm from './components/InputForm'
-import ScenarioCards from './components/ScenarioCards'
-import ProjectionChart from './components/ProjectionChart'
-import SummaryTable from './components/SummaryTable'
-import ExplanationBox from './components/ExplanationBox'
+import type { UserInputs } from './lib/aposentadoria/types'
+import { useCalculations } from './hooks/aposentadoria/useCalculations'
+import InputForm from './calculators/aposentadoria/InputForm'
+import ScenarioCards from './calculators/aposentadoria/ScenarioCards'
+import ProjectionChart from './calculators/aposentadoria/ProjectionChart'
+import SummaryTable from './calculators/aposentadoria/SummaryTable'
+import ExplanationBox from './calculators/aposentadoria/ExplanationBox'
 
 const DEFAULT_INPUTS: UserInputs = {
   rendaMensal: 0,
