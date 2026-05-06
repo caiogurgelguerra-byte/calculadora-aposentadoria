@@ -12,8 +12,8 @@ const DEFAULT_INPUTS: UserInputs = {
   idadeAtual: 0,
   idadeAposentadoria: 0,
   patrimonioAtual: 0,
-  rentabilidadeAcumulacao: 6,
-  rentabilidadeRetirada: 5.46, // 12% bruto · 15% IR · 4,5% inflação
+  rentabilidadeAcumulacao: 5.46, // 12% bruto · 15% IR · 4,5% inflação
+  rentabilidadeRetirada: 5.46,
   expectativaVida: 85,
 }
 

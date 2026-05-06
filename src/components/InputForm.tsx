@@ -57,7 +57,10 @@ export default function InputForm({ onChange }: Props) {
     if (field === 'bruto') setRendBruto(value)
     if (field === 'ir') setAliquotaIR(value)
     if (field === 'inflacao') setInflacaoEst(value)
-    update('rentabilidadeRetirada', calcRealReturn(b, ir, inf))
+    const real = calcRealReturn(b, ir, inf)
+    const next = { ...inputs, rentabilidadeAcumulacao: real, rentabilidadeRetirada: real }
+    setInputs(next)
+    onChange(next)
   }
 
   return (
@@ -135,7 +138,7 @@ export default function InputForm({ onChange }: Props) {
           onClick={() => setShowAdvanced(v => !v)}
         >
           <span className="text-[10px]">{showAdvanced ? '▼' : '▶'}</span>
-          Parâmetros avançados
+          Alterar Rentabilidade
         </button>
         <div className="flex-1 border-t border-gray-200"></div>
       </div>
@@ -143,19 +146,8 @@ export default function InputForm({ onChange }: Props) {
       {showAdvanced && (
         <div className="flex flex-col gap-4 border-t border-gray-100 pt-3">
 
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-600">Rentabilidade real estimada na acumulação (% a.a.)</span>
-            <input
-              type="number"
-              step={0.1} min={0} max={30}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              value={inputs.rentabilidadeAcumulacao}
-              onChange={e => update('rentabilidadeAcumulacao', parseFloat(e.target.value) || 0)}
-            />
-          </label>
-
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-gray-600">Rentabilidade no resgate</span>
+            <span className="text-sm font-medium text-gray-600">Rentabilidade dos investimentos</span>
             <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3 flex flex-col gap-3">
 
               <label className="flex flex-col gap-1">
