@@ -24,16 +24,43 @@ function formatMoney(value: number): string {
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function calcRealReturn(bruto: number, ir: number, inflacao: number): number {
+  const netNominal = bruto * (1 - ir / 100)
+  const real = ((1 + netNominal / 100) / (1 + inflacao / 100) - 1) * 100
+  return parseFloat(Math.max(0, real).toFixed(2))
+}
+
 export default function InputForm({ onChange }: Props) {
   const [inputs, setInputs] = useState<UserInputs>(DEFAULTS)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [rendaMensalStr, setRendaMensalStr] = useState('')
   const [patrimonioStr, setPatrimonioStr] = useState('')
 
+  const [showBrutoCalc, setShowBrutoCalc] = useState(false)
+  const [rendBruto, setRendBruto] = useState(10)
+  const [aliquotaIR, setAliquotaIR] = useState(15)
+  const [inflacaoEst, setInflacaoEst] = useState(4.5)
+
+  const realComputado = calcRealReturn(rendBruto, aliquotaIR, inflacaoEst)
+
   function update<K extends keyof UserInputs>(key: K, value: UserInputs[K]) {
     const next = { ...inputs, [key]: value }
     setInputs(next)
     onChange(next)
+  }
+
+  function applyComputedReturn() {
+    update('rentabilidadeRetirada', realComputado)
+  }
+
+  function handleBrutoField(field: 'bruto' | 'ir' | 'inflacao', value: number) {
+    const newBruto = field === 'bruto' ? value : rendBruto
+    const newIR = field === 'ir' ? value : aliquotaIR
+    const newInflacao = field === 'inflacao' ? value : inflacaoEst
+    if (field === 'bruto') setRendBruto(value)
+    if (field === 'ir') setAliquotaIR(value)
+    if (field === 'inflacao') setInflacaoEst(value)
+    update('rentabilidadeRetirada', calcRealReturn(newBruto, newIR, newInflacao))
   }
 
   return (
@@ -54,10 +81,7 @@ export default function InputForm({ onChange }: Props) {
               setRendaMensalStr(e.target.value)
               update('rendaMensal', parseMoney(e.target.value))
             }}
-            onBlur={() => {
-              const formatted = formatMoney(inputs.rendaMensal)
-              setRendaMensalStr(formatted)
-            }}
+            onBlur={() => setRendaMensalStr(formatMoney(inputs.rendaMensal))}
           />
         </div>
       </label>
@@ -101,10 +125,7 @@ export default function InputForm({ onChange }: Props) {
               setPatrimonioStr(e.target.value)
               update('patrimonioAtual', parseMoney(e.target.value))
             }}
-            onBlur={() => {
-              const formatted = formatMoney(inputs.patrimonioAtual)
-              setPatrimonioStr(formatted)
-            }}
+            onBlur={() => setPatrimonioStr(formatMoney(inputs.patrimonioAtual))}
           />
         </div>
       </label>
@@ -134,16 +155,83 @@ export default function InputForm({ onChange }: Props) {
               onChange={e => update('rentabilidadeAcumulacao', parseFloat(e.target.value) || 0)}
             />
           </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-600">Rentabilidade real estimada no resgate (% a.a.)</span>
-            <input
-              type="number"
-              step={0.1} min={0} max={30}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              value={inputs.rentabilidadeRetirada}
-              onChange={e => update('rentabilidadeRetirada', parseFloat(e.target.value) || 0)}
-            />
-          </label>
+
+          {/* Rentabilidade no resgate + calculadora de IR */}
+          <div className="flex flex-col gap-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-gray-600">Rentabilidade real estimada no resgate (% a.a.)</span>
+              <input
+                type="number"
+                step={0.1} min={0} max={30}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                value={inputs.rentabilidadeRetirada}
+                onChange={e => {
+                  setShowBrutoCalc(false)
+                  update('rentabilidadeRetirada', parseFloat(e.target.value) || 0)
+                }}
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowBrutoCalc(v => !v)
+                if (!showBrutoCalc) applyComputedReturn()
+              }}
+              className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium w-fit transition-colors"
+            >
+              <span className="text-[10px]">{showBrutoCalc ? '▼' : '▶'}</span>
+              Calcular pelo rendimento bruto e IR
+            </button>
+
+            {showBrutoCalc && (
+              <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3 flex flex-col gap-3">
+                <p className="text-xs text-indigo-600 font-medium">
+                  Informe os dados abaixo — a rentabilidade real é calculada automaticamente.
+                </p>
+
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-600">Rendimento nominal bruto (% a.a.)</span>
+                  <input
+                    type="number"
+                    step={0.1} min={0} max={50}
+                    className="border border-indigo-200 bg-white rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={rendBruto}
+                    onChange={e => handleBrutoField('bruto', parseFloat(e.target.value) || 0)}
+                  />
+                </label>
+
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-600">Alíquota de IR (%)</span>
+                  <input
+                    type="number"
+                    step={0.5} min={0} max={27.5}
+                    className="border border-indigo-200 bg-white rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={aliquotaIR}
+                    onChange={e => handleBrutoField('ir', parseFloat(e.target.value) || 0)}
+                  />
+                  <span className="text-[10px] text-gray-400">15% para aplicações acima de 2 anos · 22,5% abaixo de 6 meses</span>
+                </label>
+
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-600">Inflação estimada (% a.a.)</span>
+                  <input
+                    type="number"
+                    step={0.1} min={0} max={30}
+                    className="border border-indigo-200 bg-white rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={inflacaoEst}
+                    onChange={e => handleBrutoField('inflacao', parseFloat(e.target.value) || 0)}
+                  />
+                </label>
+
+                <div className="flex items-center justify-between bg-white rounded-lg border border-indigo-200 px-3 py-2">
+                  <span className="text-xs text-gray-500">Rentabilidade real calculada:</span>
+                  <span className="text-sm font-bold text-indigo-700">{realComputado.toFixed(2)}% a.a.</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <label className="flex flex-col gap-1">
             <span className="text-sm font-medium text-gray-600">Expectativa de vida (anos)</span>
             <input
