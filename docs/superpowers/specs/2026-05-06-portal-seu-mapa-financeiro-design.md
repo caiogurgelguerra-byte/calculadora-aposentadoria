@@ -151,6 +151,8 @@ Arredondar cada faixa individualmente a 2 casas decimais antes de somar (não so
 | 3.751,06 – 4.664,68 | 22,5% | 662,77 |
 | Acima de 4.664,68 | 27,5% | 896,00 |
 
+> Nota: R$896,00 é o valor oficial publicado pela RFB (arredondado). No limite exato de R$4.664,68 pode ocorrer diferença de R$0,01 por arredondamento — isso é esperado e não indica erro na tabela.
+
 **Exemplo de cálculo verificado** (salário bruto R$5.000, 0 dependentes):
 - INSS: (1.518,00 × 7,5%) + (1.275,88 × 9%) + (1.396,95 × 12%) + (809,17 × 14%) = 113,85 + 114,83 + 167,63 + 113,28 = **R$509,59**
 - Base IRRF: 5.000,00 − 509,59 = R$4.490,41
@@ -158,7 +160,7 @@ Arredondar cada faixa individualmente a 2 casas decimais antes de somar (não so
 - Líquido: 5.000,00 − 509,59 − 347,57 = **R$4.142,84**
 
 **Exemplo 2 — faixa 27,5%** (salário bruto R$10.000, 0 dependentes):
-- INSS: 113,85 + 114,83 + 167,63 + (5.966,58 × 14%) = 113,85 + 114,83 + 167,63 + 555,32 = **R$951,63** (teto atingido — salário acima de R$8.157,41)
+- INSS: 113,85 + 114,83 + 167,63 + (3.966,58 × 14%) = 113,85 + 114,83 + 167,63 + 555,32 = **R$951,63** (teto atingido — salário acima de R$8.157,41)
 - Base IRRF: 10.000,00 − 951,63 = R$9.048,37
 - IRRF: (9.048,37 × 27,5%) − 896,00 = 2.488,30 − 896,00 = **R$1.592,30**
 - Líquido: 10.000,00 − 951,63 − 1.592,30 = **R$7.456,07**
