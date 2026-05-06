@@ -67,7 +67,7 @@ export default function InputForm({ onChange }: Props) {
           <span className="text-sm font-medium text-gray-600">Idade atual</span>
           <input
             type="number"
-            min={18} max={70}
+            min={1} max={70}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="30"
             value={inputs.idadeAtual || ''}

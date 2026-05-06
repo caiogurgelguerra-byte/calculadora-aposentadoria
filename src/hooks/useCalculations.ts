@@ -12,7 +12,7 @@ function isValid(inputs: UserInputs): boolean {
   const { rendaMensal, idadeAtual, idadeAposentadoria, expectativaVida } = inputs
   return (
     rendaMensal > 0 &&
-    idadeAtual >= 18 && idadeAtual <= 70 &&
+    idadeAtual >= 1 && idadeAtual <= 70 &&
     idadeAposentadoria > idadeAtual && idadeAposentadoria <= 80 &&
     expectativaVida > idadeAposentadoria
   )

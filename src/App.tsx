@@ -31,7 +31,13 @@ export default function App() {
       <header className="bg-gradient-to-r from-blue-900 to-indigo-700 px-6 py-5 shadow-lg">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-white tracking-tight">Calculadora de Aposentadoria</h1>
-          <p className="text-sm text-blue-200 mt-1">Valores em termos reais · inflação já descontada</p>
+          <p className="text-sm text-blue-200 mt-2 max-w-2xl leading-relaxed">
+            Todos os valores estão em <span className="text-white font-semibold">reais de hoje</span> — a inflação já está descontada dos cálculos.
+            A <span className="text-white font-semibold">rentabilidade real</span> é o quanto seu dinheiro cresce além da inflação:
+            se seus investimentos rendem <span className="text-white">10% ao ano</span> e a inflação é <span className="text-white">5%</span>,
+            sua rentabilidade real é de aproximadamente <span className="text-white font-semibold">5% ao ano</span>.
+            É esse crescimento real que usamos nos cálculos.
+          </p>
         </div>
       </header>
 
