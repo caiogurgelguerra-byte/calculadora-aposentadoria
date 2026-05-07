@@ -75,8 +75,18 @@ export function calcDecimo(bruto: number): DecimoResult {
   return { bruto, inss, irrf, liquido }
 }
 
+function buildComparisonBrackets(salarioAtual: number): number[] {
+  const result = new Set<number>(COMPARISON_BRACKETS)
+  if (salarioAtual > 0) result.add(salarioAtual)
+  const maxBase = COMPARISON_BRACKETS[COMPARISON_BRACKETS.length - 1]
+  if (salarioAtual > maxBase) {
+    for (let v = 30000; v < salarioAtual; v += 10000) result.add(v)
+  }
+  return Array.from(result).sort((a, b) => a - b)
+}
+
 export function calcComparativo(salarioAtual: number, dependentes: number): ComparativoRow[] {
-  return COMPARISON_BRACKETS.map(bruto => {
+  return buildComparisonBrackets(salarioAtual).map(bruto => {
     const r = calcSalarioLiquido(bruto, dependentes)
     const totalDesconto = r.inss + r.irrf
     const percentualDesconto = bruto > 0

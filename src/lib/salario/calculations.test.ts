@@ -166,8 +166,9 @@ describe('calcDecimo', () => {
 })
 
 describe('calcComparativo', () => {
-  it('returns 8 rows for the 8 predefined salary brackets', () => {
+  it('returns 8 rows when salary is in predefined brackets (≤ R$20K)', () => {
     expect(calcComparativo(5000, 0)).toHaveLength(8)
+    expect(calcComparativo(20000, 0)).toHaveLength(8)
   })
   it('marks the current salary row (R$5.000)', () => {
     const rows = calcComparativo(5000, 0)
@@ -185,5 +186,23 @@ describe('calcComparativo', () => {
     const row = calcComparativo(5000, 0).find(r => r.bruto === 5000)!
     const expected = ((row.inss + row.irrf) / 5000) * 100
     expect(row.percentualDesconto).toBeCloseTo(expected, 2)
+  })
+  it('estende faixas até o salário do usuário quando > R$20K (passo de 10K)', () => {
+    const rows = calcComparativo(50000, 0)
+    expect(rows[rows.length - 1].bruto).toBe(50000)
+    expect(rows.find(r => r.bruto === 30000)).toBeDefined()
+    expect(rows.find(r => r.bruto === 40000)).toBeDefined()
+    expect(rows.find(r => r.bruto === 50000)?.isCurrentSalary).toBe(true)
+  })
+  it('insere o salário exato como última linha quando não é múltiplo de 10K', () => {
+    const rows = calcComparativo(55000, 0)
+    expect(rows[rows.length - 1].bruto).toBe(55000)
+    expect(rows.find(r => r.bruto === 50000)).toBeDefined()
+    expect(rows.find(r => r.bruto === 55000)?.isCurrentSalary).toBe(true)
+  })
+  it('insere o salário entre faixas predefinidas se cair em valor intermediário (≤ R$20K)', () => {
+    const rows = calcComparativo(7000, 0)
+    expect(rows.find(r => r.bruto === 7000)?.isCurrentSalary).toBe(true)
+    expect(rows.length).toBe(9)
   })
 })
