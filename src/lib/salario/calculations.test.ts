@@ -57,9 +57,37 @@ describe('calcSalarioLiquido', () => {
     expect(r.irrf).toBe(0)
     expect(r.liquido).toBe(0)
   })
-  it('R$5.000,01 bruto sai da isenção e tem IR > 0', () => {
+  it('R$5.000,01 bruto não tem cliff (IR ≈ 0 com redutor)', () => {
     const r = calcSalarioLiquido(5000.01, 0)
-    expect(r.irrf).toBeGreaterThan(0)
+    expect(r.irrf).toBeLessThan(1)
+  })
+})
+
+describe('Redutor IR R$5K–R$7K (reforma fev/2026)', () => {
+  it('R$5.500 paga 25% do IR pleno', () => {
+    // pleno em base 4920,41 (27,5%) = 457,11; factor 0,25 → 114,28
+    expect(calcSalarioLiquido(5500, 0).irrf).toBe(114.28)
+  })
+  it('R$6.000 paga 50% do IR pleno', () => {
+    // pleno em base 5350,41 (27,5%) = 575,36; factor 0,5 → 287,68
+    expect(calcSalarioLiquido(6000, 0).irrf).toBe(287.68)
+  })
+  it('R$7.000 paga 100% do IR pleno (fim do redutor)', () => {
+    // pleno em base 6210,41 (27,5%) = 811,86; factor 1,0 → 811,86
+    expect(calcSalarioLiquido(7000, 0).irrf).toBe(811.86)
+  })
+  it('R$7.000,01 também paga IR pleno (acima do redutor)', () => {
+    const r = calcSalarioLiquido(7000.01, 0)
+    expect(r.irrf).toBeGreaterThan(811)
+  })
+  it('IR cresce monotonicamente entre R$5K e R$7K', () => {
+    const a = calcSalarioLiquido(5500, 0).irrf
+    const b = calcSalarioLiquido(6000, 0).irrf
+    const c = calcSalarioLiquido(6500, 0).irrf
+    const d = calcSalarioLiquido(7000, 0).irrf
+    expect(a).toBeLessThan(b)
+    expect(b).toBeLessThan(c)
+    expect(c).toBeLessThan(d)
   })
 })
 

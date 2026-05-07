@@ -24,7 +24,11 @@ export const IRRF_BRACKETS: Array<{ limite: number; aliquota: number; parcela: n
 
 export const DEDUCAO_DEPENDENTE = 189.59
 
-// Reforma do IR vigente desde fev/2026: brutos até este valor não retêm IR.
+// Reforma do IR vigente desde fev/2026:
+// - Brutos ≤ R$5.000: isento (IR = 0)
+// - Brutos entre R$5.000 e R$7.000: redutor linear — IR = IR_pleno × (bruto - 5000) / 2000
+// - Brutos ≥ R$7.000: tabela 2025 normal, sem redutor
 export const ISENCAO_IR_GROSS_LIMIT = 5000.00
+export const REDUTOR_IR_GROSS_LIMIT = 7000.00
 
 export const COMPARISON_BRACKETS = [1500, 2000, 3000, 5000, 8000, 10000, 15000, 20000]

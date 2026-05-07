@@ -23,7 +23,7 @@ export default function SalarioPage() {
       <div className="bg-gradient-to-r from-blue-900 to-indigo-700 px-6 py-5">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-white tracking-tight">Calculadora de Salário Líquido</h1>
-          <p className="text-sm text-blue-200 mt-1">CLT Brasil — INSS 2025 + isenção de IR para brutos até R$ 5.000 (reforma vigente desde fev/2026)</p>
+          <p className="text-sm text-blue-200 mt-1">CLT Brasil — INSS 2025 + reforma do IR fev/2026 (isento até R$ 5.000 / redutor proporcional até R$ 7.000)</p>
         </div>
       </div>
 
