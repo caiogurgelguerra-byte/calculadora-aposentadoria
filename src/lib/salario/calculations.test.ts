@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcINSS, calcIRRF, calcSalarioLiquido, calcDecimo, calcComparativo } from './calculations'
+import { calcINSS, calcIRRF, calcSalarioLiquido, calcDecimo, calcComparativo, calcValorHorasExtras } from './calculations'
 
 describe('calcINSS', () => {
   it('returns 0 for salary 0', () => {
@@ -88,6 +88,66 @@ describe('Redutor IR R$5K–R$7K (reforma fev/2026)', () => {
     expect(a).toBeLessThan(b)
     expect(b).toBeLessThan(c)
     expect(c).toBeLessThan(d)
+  })
+})
+
+describe('calcValorHorasExtras (CLT)', () => {
+  it('retorna 0 quando salário é 0', () => {
+    expect(calcValorHorasExtras(0, 10, 0)).toBe(0)
+  })
+  it('HE 50% sobre R$2.200 (hora-base R$10): 10h × R$15 = R$150', () => {
+    // valorHora = 2200 / 220 = 10; HE50 = 10 × 1,5 × 10 = 150
+    expect(calcValorHorasExtras(2200, 10, 0)).toBe(150)
+  })
+  it('HE 100% sobre R$2.200 (hora-base R$10): 5h × R$20 = R$100', () => {
+    expect(calcValorHorasExtras(2200, 0, 5)).toBe(100)
+  })
+  it('combina HE 50% e 100%', () => {
+    // 10 × 1,5 × 10 + 10 × 2 × 5 = 150 + 100 = 250
+    expect(calcValorHorasExtras(2200, 10, 5)).toBe(250)
+  })
+})
+
+describe('SalarioLiquido com extras (HE / outros / benefícios)', () => {
+  it('outros descontos reduzem o líquido (sem alterar INSS/IR)', () => {
+    const semDesc = calcSalarioLiquido(10000, 0)
+    const comDesc = calcSalarioLiquido(10000, 0, { outrosDescontos: 500 })
+    expect(comDesc.inss).toBe(semDesc.inss)
+    expect(comDesc.irrf).toBe(semDesc.irrf)
+    expect(comDesc.liquido).toBe(semDesc.liquido - 500)
+  })
+  it('benefícios somam ao líquido (sem alterar INSS/IR)', () => {
+    const semBen = calcSalarioLiquido(10000, 0)
+    const comBen = calcSalarioLiquido(10000, 0, { beneficios: 800 })
+    expect(comBen.inss).toBe(semBen.inss)
+    expect(comBen.irrf).toBe(semBen.irrf)
+    expect(comBen.liquido).toBeCloseTo(semBen.liquido + 800, 2)
+  })
+  it('HE compõe a base de INSS e IR (bruto efetivo = bruto + HE)', () => {
+    // Bruto base R$3.000 (isento de IR), com 20h HE 50% = R$3000/220 × 1,5 × 20 = R$409,09
+    // Bruto total = R$3.409,09 — ainda na isenção
+    const r = calcSalarioLiquido(3000, 0, { horasExtras50: 20 })
+    expect(r.valorHE).toBeCloseTo(409.09, 1)
+    expect(r.brutoTotal).toBeCloseTo(3409.09, 1)
+    expect(r.irrf).toBe(0) // ainda isento
+  })
+  it('HE pode tirar o salário da isenção e gerar IR via redutor', () => {
+    // Bruto R$5.000 (isento) + 50h HE 50% = R$5.000/220 × 1,5 × 50 ≈ R$1.704,55
+    // Bruto total ≈ R$6.704,55 — cai na faixa do redutor
+    const r = calcSalarioLiquido(5000, 0, { horasExtras50: 50 })
+    expect(r.brutoTotal).toBeGreaterThan(6500)
+    expect(r.irrf).toBeGreaterThan(0)
+    expect(r.irrf).toBeLessThan(700) // não chega no IR pleno (que seria > R$700)
+  })
+  it('todos os extras juntos: liquido = brutoTotal − INSS − IR − outros + benefícios', () => {
+    const r = calcSalarioLiquido(8000, 1, {
+      horasExtras50: 5,
+      horasExtras100: 2,
+      outrosDescontos: 250,
+      beneficios: 600,
+    })
+    const expected = r.brutoTotal - r.inss - r.irrf - r.outrosDescontos + r.beneficios
+    expect(r.liquido).toBeCloseTo(expected, 2)
   })
 })
 

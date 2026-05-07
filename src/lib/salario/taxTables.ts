@@ -33,4 +33,10 @@ export const DEDUCAO_DEPENDENTE = 189.59
 export const ISENCAO_IR_GROSS_LIMIT = 5000.00
 export const REDUTOR_IR_GROSS_LIMIT = 7000.00
 
+// CLT — jornada padrão 44h/sem = 220h/mês para divisor de hora-base.
+// Adicional de hora extra: 50% (semana) e 100% (domingos/feriados).
+export const JORNADA_MENSAL_PADRAO = 220
+export const ADICIONAL_HE_50 = 1.5
+export const ADICIONAL_HE_100 = 2.0
+
 export const COMPARISON_BRACKETS = [1500, 2000, 3000, 5000, 8000, 10000, 15000, 20000]

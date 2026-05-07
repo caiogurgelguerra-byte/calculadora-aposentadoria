@@ -1,11 +1,31 @@
 import type { SalarioResult, DecimoResult, ComparativoRow } from './types'
-import { INSS_BRACKETS, IRRF_BRACKETS, DEDUCAO_DEPENDENTE, ISENCAO_IR_GROSS_LIMIT, REDUTOR_IR_GROSS_LIMIT, COMPARISON_BRACKETS } from './taxTables'
+import {
+  INSS_BRACKETS, IRRF_BRACKETS, DEDUCAO_DEPENDENTE,
+  ISENCAO_IR_GROSS_LIMIT, REDUTOR_IR_GROSS_LIMIT,
+  JORNADA_MENSAL_PADRAO, ADICIONAL_HE_50, ADICIONAL_HE_100,
+  COMPARISON_BRACKETS,
+} from './taxTables'
 
 function aplicaReformaIR(bruto: number, irrfPleno: number): number {
   if (bruto <= ISENCAO_IR_GROSS_LIMIT) return 0
   if (bruto >= REDUTOR_IR_GROSS_LIMIT) return irrfPleno
   const factor = (bruto - ISENCAO_IR_GROSS_LIMIT) / (REDUTOR_IR_GROSS_LIMIT - ISENCAO_IR_GROSS_LIMIT)
   return Math.round(irrfPleno * factor * 100) / 100
+}
+
+export function calcValorHorasExtras(salarioBruto: number, h50: number, h100: number): number {
+  if (salarioBruto <= 0) return 0
+  const valorHora = salarioBruto / JORNADA_MENSAL_PADRAO
+  const v50 = Math.round(valorHora * ADICIONAL_HE_50 * h50 * 100) / 100
+  const v100 = Math.round(valorHora * ADICIONAL_HE_100 * h100 * 100) / 100
+  return Math.round((v50 + v100) * 100) / 100
+}
+
+export interface SalarioCalcOptions {
+  outrosDescontos?: number
+  beneficios?: number
+  horasExtras50?: number
+  horasExtras100?: number
 }
 
 const TETO_INSS = INSS_BRACKETS[INSS_BRACKETS.length - 1].limite
@@ -30,13 +50,21 @@ export function calcIRRF(base: number): number {
   return Math.max(0, Math.round(irrf * 100) / 100)
 }
 
-export function calcSalarioLiquido(bruto: number, dependentes: number): SalarioResult {
-  const inss = calcINSS(bruto)
+export function calcSalarioLiquido(bruto: number, dependentes: number, opts?: SalarioCalcOptions): SalarioResult {
+  const horasExtras50 = opts?.horasExtras50 ?? 0
+  const horasExtras100 = opts?.horasExtras100 ?? 0
+  const outrosDescontos = opts?.outrosDescontos ?? 0
+  const beneficios = opts?.beneficios ?? 0
+
+  const valorHE = calcValorHorasExtras(bruto, horasExtras50, horasExtras100)
+  const brutoTotal = Math.round((bruto + valorHE) * 100) / 100
+
+  const inss = calcINSS(brutoTotal)
   const deducaoDependentes = dependentes * DEDUCAO_DEPENDENTE
-  const baseIRRF = Math.max(0, Math.round((bruto - inss - deducaoDependentes) * 100) / 100)
-  const irrf = aplicaReformaIR(bruto, calcIRRF(baseIRRF))
-  const liquido = Math.round((bruto - inss - irrf) * 100) / 100
-  return { bruto, inss, baseIRRF, irrf, liquido }
+  const baseIRRF = Math.max(0, Math.round((brutoTotal - inss - deducaoDependentes) * 100) / 100)
+  const irrf = aplicaReformaIR(brutoTotal, calcIRRF(baseIRRF))
+  const liquido = Math.round((brutoTotal - inss - irrf - outrosDescontos + beneficios) * 100) / 100
+  return { bruto, valorHE, brutoTotal, inss, baseIRRF, irrf, outrosDescontos, beneficios, liquido }
 }
 
 export function calcDecimo(bruto: number): DecimoResult {

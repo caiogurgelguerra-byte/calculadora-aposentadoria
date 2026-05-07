@@ -10,7 +10,12 @@ export interface SalarioCalculations {
 
 export function useSalarioCalculations(inputs: SalarioInputs): SalarioCalculations {
   return useMemo(() => {
-    const result = calcSalarioLiquido(inputs.salarioBruto, inputs.dependentes)
+    const result = calcSalarioLiquido(inputs.salarioBruto, inputs.dependentes, {
+      outrosDescontos: inputs.outrosDescontos,
+      beneficios: inputs.beneficios,
+      horasExtras50: inputs.horasExtras50,
+      horasExtras100: inputs.horasExtras100,
+    })
     const decimo = inputs.incluiDecimo ? calcDecimo(inputs.salarioBruto) : null
     const comparativo = calcComparativo(inputs.salarioBruto, inputs.dependentes)
     return { result, decimo, comparativo }

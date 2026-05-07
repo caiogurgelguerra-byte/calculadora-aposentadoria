@@ -10,6 +10,10 @@ const DEFAULT_INPUTS: SalarioInputs = {
   dependentes: 0,
   incluiDecimo: false,
   showComparativo: false,
+  outrosDescontos: 0,
+  beneficios: 0,
+  horasExtras50: 0,
+  horasExtras100: 0,
 }
 
 export default function SalarioPage() {
