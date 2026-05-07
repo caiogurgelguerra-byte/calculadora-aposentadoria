@@ -1,14 +1,16 @@
-// INSS: tabela vigente (Portaria MF 2025).
+// INSS: Portaria Interministerial MPS/MF nº 13/2026 (reajuste 3,9% sobre 2025).
+//   Salário mínimo 2026: R$1.621,00 / Teto: R$8.475,55 / Contribuição máxima: R$988,10.
 // IRRF: tabela 2025 com a isenção da reforma vigente desde fev/2026 — salários
-// brutos até R$5.000/mês não retêm IR na fonte. A isenção é aplicada no nível
-// do cálculo de salário líquido (calcSalarioLiquido / calcDecimo), não na
-// tabela em si — o app é para recebimento líquido mensal, não declaração de IR.
+//   brutos até R$5.000/mês não retêm IR na fonte (entre R$5K-R$7K há redutor linear).
+//   A isenção/redutor é aplicada no nível do cálculo de salário líquido
+//   (calcSalarioLiquido / calcDecimo), não na tabela em si — o app é pra
+//   recebimento líquido mensal, não declaração de IR.
 
 export const INSS_BRACKETS: Array<{ limite: number; aliquota: number }> = [
-  { limite: 1518.00, aliquota: 0.075 },
-  { limite: 2793.88, aliquota: 0.09  },
-  { limite: 4190.83, aliquota: 0.12  },
-  { limite: 8157.41, aliquota: 0.14  },
+  { limite: 1621.00, aliquota: 0.075 },
+  { limite: 2902.84, aliquota: 0.09  },
+  { limite: 4354.27, aliquota: 0.12  },
+  { limite: 8475.55, aliquota: 0.14  },
 ]
 
 // Tabela progressiva com parcela dedutível (Receita Federal 2025).

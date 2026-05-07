@@ -8,8 +8,10 @@ function aplicaReformaIR(bruto: number, irrfPleno: number): number {
   return Math.round(irrfPleno * factor * 100) / 100
 }
 
+const TETO_INSS = INSS_BRACKETS[INSS_BRACKETS.length - 1].limite
+
 export function calcINSS(bruto: number): number {
-  const base = Math.min(bruto, 8157.41)
+  const base = Math.min(bruto, TETO_INSS)
   let prev = 0
   let total = 0
   for (const { limite, aliquota } of INSS_BRACKETS) {
