@@ -33,14 +33,14 @@ describe('calcIRRF', () => {
 })
 
 describe('calcSalarioLiquido', () => {
-  it('Exemplo 1: R$5.000 bruto, 0 dependentes', () => {
+  it('Exemplo 1: R$5.000 bruto isento (reforma fev/2026)', () => {
     const r = calcSalarioLiquido(5000, 0)
     expect(r.inss).toBe(509.59)
     expect(r.baseIRRF).toBe(4490.41)
-    expect(r.irrf).toBe(347.57)
-    expect(r.liquido).toBe(4142.84)
+    expect(r.irrf).toBe(0)
+    expect(r.liquido).toBe(4490.41)
   })
-  it('Exemplo 2: R$10.000 bruto, 0 dependentes', () => {
+  it('Exemplo 2: R$10.000 bruto, 0 dependentes — fora da isenção', () => {
     const r = calcSalarioLiquido(10000, 0)
     expect(r.inss).toBe(951.63)
     expect(r.baseIRRF).toBe(9048.37)
@@ -57,18 +57,22 @@ describe('calcSalarioLiquido', () => {
     expect(r.irrf).toBe(0)
     expect(r.liquido).toBe(0)
   })
+  it('R$5.000,01 bruto sai da isenção e tem IR > 0', () => {
+    const r = calcSalarioLiquido(5000.01, 0)
+    expect(r.irrf).toBeGreaterThan(0)
+  })
 })
 
 describe('calcDecimo', () => {
-  it('IRRF is computed WITHOUT dependent deduction', () => {
+  it('isento quando bruto está na faixa da reforma (≤ R$5.000)', () => {
     const decimoResult = calcDecimo(5000)
     expect(decimoResult.inss).toBe(509.59)
-    expect(decimoResult.irrf).toBe(347.57)
-    expect(decimoResult.liquido).toBeCloseTo(5000 - 509.59 - 347.57, 2)
+    expect(decimoResult.irrf).toBe(0)
+    expect(decimoResult.liquido).toBeCloseTo(5000 - 509.59, 2)
   })
-  it('13th IRRF differs from monthly when dependents would reduce monthly IR base', () => {
-    const monthly = calcSalarioLiquido(5000, 2)
-    const decimo = calcDecimo(5000)
+  it('acima de R$5.000, 13th IRRF é maior que o mensal com dependentes (não deduz dependentes)', () => {
+    const monthly = calcSalarioLiquido(10000, 2)
+    const decimo = calcDecimo(10000)
     expect(decimo.irrf).toBeGreaterThan(monthly.irrf)
   })
 })

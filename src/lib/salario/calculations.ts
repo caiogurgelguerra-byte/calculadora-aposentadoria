@@ -1,5 +1,5 @@
 import type { SalarioResult, DecimoResult, ComparativoRow } from './types'
-import { INSS_BRACKETS, IRRF_BRACKETS, DEDUCAO_DEPENDENTE, COMPARISON_BRACKETS } from './taxTables'
+import { INSS_BRACKETS, IRRF_BRACKETS, DEDUCAO_DEPENDENTE, ISENCAO_IR_GROSS_LIMIT, COMPARISON_BRACKETS } from './taxTables'
 
 export function calcINSS(bruto: number): number {
   const base = Math.min(bruto, 8157.41)
@@ -25,7 +25,7 @@ export function calcSalarioLiquido(bruto: number, dependentes: number): SalarioR
   const inss = calcINSS(bruto)
   const deducaoDependentes = dependentes * DEDUCAO_DEPENDENTE
   const baseIRRF = Math.max(0, Math.round((bruto - inss - deducaoDependentes) * 100) / 100)
-  const irrf = calcIRRF(baseIRRF)
+  const irrf = bruto <= ISENCAO_IR_GROSS_LIMIT ? 0 : calcIRRF(baseIRRF)
   const liquido = Math.round((bruto - inss - irrf) * 100) / 100
   return { bruto, inss, baseIRRF, irrf, liquido }
 }
@@ -33,7 +33,7 @@ export function calcSalarioLiquido(bruto: number, dependentes: number): SalarioR
 export function calcDecimo(bruto: number): DecimoResult {
   const inss = calcINSS(bruto)
   const base = Math.max(0, Math.round((bruto - inss) * 100) / 100)
-  const irrf = calcIRRF(base)
+  const irrf = bruto <= ISENCAO_IR_GROSS_LIMIT ? 0 : calcIRRF(base)
   const liquido = Math.round((bruto - inss - irrf) * 100) / 100
   return { bruto, inss, irrf, liquido }
 }

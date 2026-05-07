@@ -1,5 +1,8 @@
-// ATENÇÃO: Atualizar estas tabelas quando sair a reforma do IR (prevista para 2026)
-// A reforma isenta salários até R$5.000/mês e altera as faixas acima disso.
+// INSS: tabela vigente (Portaria MF 2025).
+// IRRF: tabela 2025 com a isenção da reforma vigente desde fev/2026 — salários
+// brutos até R$5.000/mês não retêm IR na fonte. A isenção é aplicada no nível
+// do cálculo de salário líquido (calcSalarioLiquido / calcDecimo), não na
+// tabela em si — o app é para recebimento líquido mensal, não declaração de IR.
 
 export const INSS_BRACKETS: Array<{ limite: number; aliquota: number }> = [
   { limite: 1518.00, aliquota: 0.075 },
@@ -20,5 +23,8 @@ export const IRRF_BRACKETS: Array<{ limite: number; aliquota: number; parcela: n
 ]
 
 export const DEDUCAO_DEPENDENTE = 189.59
+
+// Reforma do IR vigente desde fev/2026: brutos até este valor não retêm IR.
+export const ISENCAO_IR_GROSS_LIMIT = 5000.00
 
 export const COMPARISON_BRACKETS = [1500, 2000, 3000, 5000, 8000, 10000, 15000, 20000]
