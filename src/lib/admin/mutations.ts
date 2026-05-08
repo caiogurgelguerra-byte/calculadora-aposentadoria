@@ -9,9 +9,13 @@ export async function releaseClient(clientId: string) {
 }
 
 export async function rejectClient(clientId: string, motivo: string) {
-  const { error } = await supabase
-    .from('profiles')
-    .update({ status: 'rejeitado', motivo_rejeicao: motivo })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase
+    .from('profiles') as any)
+    .update({
+      status: 'rejeitado',
+      motivo_rejeicao: motivo,
+    })
     .eq('id', clientId)
     .eq('status', 'lead');
   return error ? { ok: false as const, error } : { ok: true as const };
