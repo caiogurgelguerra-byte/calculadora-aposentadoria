@@ -16,7 +16,7 @@ export function RequireGuest({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const profile = useProfile();
 
-  if (auth.status === 'loading' || (auth.status === 'authenticated' && profile.status === 'loading')) {
+  if (auth.status === 'loading' || (auth.status === 'authenticated' && (profile.status === 'loading' || profile.status === 'idle'))) {
     return <FullScreenSpinner />;
   }
   if (auth.status === 'authenticated') {
