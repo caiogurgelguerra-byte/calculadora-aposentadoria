@@ -1,0 +1,2 @@
+export const POLICY_LAST_UPDATED = '2026-05-08';
+export const TERMS_LAST_UPDATED = '2026-05-08';
