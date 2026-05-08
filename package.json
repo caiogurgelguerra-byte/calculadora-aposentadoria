@@ -11,10 +11,16 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.10",
+    "@hookform/resolvers": "^3.10.0",
+    "@supabase/supabase-js": "2.105.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.75.0",
     "react-router-dom": "^7.15.0",
-    "recharts": "^2.15.0"
+    "recharts": "^2.15.0",
+    "sonner": "^1.7.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
