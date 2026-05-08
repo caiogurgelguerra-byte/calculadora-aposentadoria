@@ -1,8 +1,8 @@
 # Onboarding CFP — Fase 1A (Design)
 
-**Data:** 2026-05-07 (revisão 2026-05-08, rodada 2 de code review)
+**Data:** 2026-05-07 (revisão 2026-05-08, **rodada 3** de code review)
 **Autor:** Caio Gurgel Guerra (planejador CFP)
-**Status:** Design pronto para plano de implementação. Code review em **duas rodadas** (5 revisores paralelos cada) aplicado — críticos, altos e médios das duas rodadas endereçados. Bloqueadores externos (DNS, DPAs, jurídico, CNPJ, número Planejar, LIA) listados em A.1 e devem ser resolvidos antes do go-live, **mas não impedem o início da implementação**.
+**Status:** Design final, pronto para plano de implementação. Code review em **três rodadas** (5 revisores paralelos cada — 15 reviews independentes) aplicado integralmente. Convergência atingida: a rodada 3 não produziu novos críticos de runtime ou regressões funcionais — apenas refinamentos de redação, consistência e compliance final. Bloqueadores externos (DNS, DPAs, jurídico, CNPJ, número Planejar, LIA) listados em A.1; resolver antes do go-live, **mas não impedem o início da implementação**.
 **Escopo:** Fase 1A do onboarding de clientes para consultoria CFP, integrado ao portal `meumapafinanceiro.ia.br`
 
 ---
@@ -60,18 +60,21 @@ Caminhos alternativos:
       │
       ▼
 [Supabase (novo)]
-      ├─ Auth (email + senha, email confirmation ON)
-      ├─ Postgres + RLS (tabela profiles, triggers de proteção)
+      ├─ Auth (email + senha, email confirmation ON, JWT 1h + Refresh 24h)
+      ├─ Postgres + RLS (tabela profiles, view profiles_with_email, triggers de proteção)
       ├─ Database Webhook (AFTER INSERT profiles → notify-new-lead)
+      ├─ pg_cron (1h → audit-orphan-leads)
       └─ Edge Functions:
-          • notify-new-lead          (chamada por webhook, com secret)
-          • release-client           (admin → UPDATE+email atomicamente)
+          • notify-new-lead          (chamada por webhook, com secret timing-safe)
+          • release-client           (admin → UPDATE + email atomicamente, CORS)
+          • delete-own-account       (cliente → exclusão LGPD atômica + 2 emails)
+          • audit-orphan-leads       (cron 1h → detecta webhook silencioso)
               │
               ▼
         [Resend API (novo)]
               │
               ▼
-        Emails transacionais (Caio + Cliente)
+        Emails transacionais (Caio + Cliente, html + text)
 ```
 
 **Stack adicionada:**
@@ -217,16 +220,20 @@ begin
     deps_int := array[]::int[];
   end if;
 
-  -- Casts seguros: capturam exceção e usam defaults para evitar abortar o signUp
-  -- (frontend valida via Zod antes; aqui é só safety net contra metadata corrompida).
+  -- Casts seguros: capturam APENAS erros de formato (mesma whitelist do bloco
+  -- exception global no fim) e usam defaults. Bugs de schema (enum renomeado/
+  -- removido → undefined_object) DEVEM propagar — não mascarar.
   begin v_nasc := (meta->>'data_nascimento')::date;
-  exception when others then v_nasc := '2000-01-01'::date; end;
+  exception when invalid_text_representation or invalid_datetime_format
+    then v_nasc := '2000-01-01'::date; end;
 
   begin v_civil := (meta->>'estado_civil')::public.estado_civil;
-  exception when others then v_civil := 'solteiro'; end;
+  exception when invalid_text_representation
+    then v_civil := 'solteiro'; end;
 
   begin v_regime := (meta->>'regime_trabalho')::public.regime_trabalho;
-  exception when others then v_regime := 'outro'; end;
+  exception when invalid_text_representation
+    then v_regime := 'outro'; end;
 
   insert into public.profiles (
     id, nome_completo, data_nascimento, estado_civil, dependentes,
@@ -450,10 +457,17 @@ create trigger profiles_prevent_last_admin_delete_trg
 -- (PostgREST não permite join em schema `auth` por default; query do §4.1
 -- com `auth.users!inner(email)` falharia 400 em prod.)
 --
--- IMPORTANTE: security_invoker exigiria GRANT SELECT em auth.users para
--- authenticated, o que vaza email de QUALQUER usuário. Usamos security_definer
--- (default) com filtro embutido espelhando a RLS de profiles. security_barrier
--- impede vazamento via predicates leaky em PostgREST.
+-- IMPORTANTE — modelo de segurança da view:
+--   * Sem `security_invoker = true` (default em PG 15+ é security_invoker=false):
+--     a view executa com permissões do OWNER (postgres na migration).
+--     Owner tem SELECT em auth.users e public.profiles, então a view consegue
+--     ler ambos. Authenticated NÃO precisa GRANT em auth.users.
+--   * O filtro `where (auth.uid() = p.id or public.is_admin())` É a única
+--     camada de segurança — espelha a RLS de profiles. SE FOR REMOVIDO, vaza
+--     email de todos os usuários para qualquer authenticated.
+--   * `security_barrier = true` impede vazamento via predicates leaky vindos
+--     do PostgREST (ex.: WHERE com função leaky que veria linhas filtradas).
+--   * Owner DEVE permanecer postgres. NUNCA fazer `alter view ... owner to ...`.
 -- ============================================================
 
 create or replace view public.profiles_with_email
@@ -481,7 +495,12 @@ grant select on public.profiles_with_email to authenticated;
 - **Ordem dos triggers BEFORE UPDATE** — Postgres executa em ordem alfabética do nome: `profiles_prevent_self_demote_trg` → `profiles_protect_columns_trg` → `profiles_set_updated_at` → `profiles_validate_domain_trg`. Isso é proposital: o anti-self-demote checa `auth.uid()` antes do `protect_columns` reverter, então um admin de boa fé recebe a mensagem de erro correta. Não renomear sem reavaliar.
 - **`is_admin()` SECURITY DEFINER** — bypassa RLS dentro do corpo, evitando recursão na policy SELECT. Mudar para SECURITY INVOKER quebra isso.
 - **`policy profiles_insert` é defesa em profundidade** — o caminho normal é via trigger SECURITY DEFINER `handle_new_user` (que bypassa RLS); a policy só dispara em fallback (ex: cliente cadastrou, trigger logou warning, profile órfão, frontend tenta INSERT manual via `supabase.from('profiles').insert(...)`). Bloqueia escalada ao impedir setar `is_admin=true` ou `status≠'lead'` por essa via.
-- **View `profiles_with_email`** — necessária porque PostgREST não permite join em schema `auth` por default. Usa `security_definer` (default) com filtro `where (auth.uid() = p.id or public.is_admin())` embutido — espelha a RLS de profiles. **Não usa `security_invoker`** porque isso exigiria `grant select on auth.users to authenticated`, vazando email de qualquer usuário. Inclui `security_barrier = true` para bloquear vazamento via predicates leaky vindos de PostgREST.
+- **View `profiles_with_email`** — necessária porque PostgREST não permite join em schema `auth` por default. Configurações:
+  - `security_invoker = false` (default em PG 15+; equivale ao comportamento clássico de view executando com permissões do owner). Postgres views NÃO têm atributo `security_definer` — a opção é só `security_invoker = true|false`.
+  - Filtro `where (auth.uid() = p.id or public.is_admin())` embutido espelha a RLS de profiles. **Esse filtro É a única camada de segurança da view.** Se for removido em refactor futuro, vaza email de todos os usuários para qualquer authenticated.
+  - `security_barrier = true` impede vazamento via predicates leaky em PostgREST.
+  - Owner deve permanecer `postgres` (a migration é executada nesse role); NUNCA `alter view ... owner to authenticated`.
+  - `is_admin()` STABLE permite ao planner cachear o resultado dentro da query; com `security_barrier`, o `where is_admin = false` do PostgREST não é empurrado pra antes do filtro de segurança — mas o índice parcial `profiles_admin_list_idx` ainda deve ser usado quando o admin lista. Validar com `EXPLAIN ANALYZE` em smoke (caso 15 do §7.5).
 - **`handle_new_user` whitelist de exceções** — só captura `invalid_text_representation`, `invalid_datetime_format` e `invalid_parameter_value` (formato de dados vindo de metadata corrompido). Demais exceções (check_violation, raise_exception do trigger validate_domain, bugs de schema) propagam e abortam o signUp — caso contrário mascaramos bugs reais como "profile órfão". O frontend detecta o caso whitelist (auth.users criado, profile null) e mostra OrphanProfileError; o caso não-whitelist é vivido como erro de signUp normal, com mensagem do trigger que abortou.
 - **Trigger `profiles_prevent_last_admin_delete`** — pareado com runbook §4.4. Se Caio for único admin e for deletado via Studio, CASCADE vai disparar este BEFORE DELETE em profiles e abortar — força promoção de outro admin antes.
 - **Exclusão real LGPD** requer deletar `auth.users` (cascateia profile via FK), com a ressalva de que a política de privacidade deixa claro que pedido do titular (Art. 18) prevalece sobre retenção declarada (item 6 da §3.10). Documentado no runbook (§4.4).
@@ -579,7 +598,7 @@ Sem essa diferenciação, `RequireClient` precisaria heurística (`!loading && !
 
 **Loading unificado para evitar duplo flash:** os layouts e guards mostram um único `<FullScreenSpinner />` enquanto `useAuth.status === 'loading'` ou `useProfile.status === 'loading'`. Estado `'error'` mostra `<ConnectionErrorScreen />` com botão "Tentar novamente"; estado `'orphan'` mostra `<OrphanProfileError />` (CTA WhatsApp + Sair).
 
-**`<RequireGuest>` para rotas auth:** rotas `/cadastro`, `/login`, `/recuperar-senha`, `/redefinir-senha` não devem ser acessíveis a usuários autenticados — se houver sessão, redirecionar via tabela "redirect inteligente pós-login". Sem esse guard, um usuário logado que digite `/cadastro` na URL veria o form e poderia gerar estado inconsistente (signUp com sessão ativa). Implementação:
+**`<RequireGuest>` apenas em `/cadastro` e `/login`:** essas duas rotas não devem ser acessíveis a usuários autenticados — se houver sessão, redirecionar via tabela "redirect inteligente pós-login". Sem esse guard, um usuário logado que digite `/cadastro` na URL veria o form e poderia gerar estado inconsistente (signUp com sessão ativa). Implementação:
 
 ```tsx
 function RequireGuest({ children }: { children: ReactNode }) {
@@ -593,7 +612,9 @@ function RequireGuest({ children }: { children: ReactNode }) {
 }
 ```
 
-`/redefinir-senha` é exceção — pode estar com sessão de recovery (PASSWORD_RECOVERY); guard especial trata.
+**`/recuperar-senha` NÃO usa `RequireGuest`.** Cenário real: admin logado clica "Esqueci minha senha" no email recebido — se houvesse guard, seria redirecionado para `/admin` antes de poder digitar email. A página em si não causa estado inconsistente (só dispara `supabase.auth.resetPasswordForEmail`).
+
+**`/redefinir-senha` NÃO usa `RequireGuest`.** A página entra com sessão de recovery transitória vinda do link no email; o `signOut({ scope: 'local' })` no `useEffect` (§3.8) limpa qualquer sessão pré-existente para evitar estado misto. Adicionar guard quebraria o fluxo.
 
 **Profile órfão (recovery):** se `useProfile.status === 'orphan'` (auth.users criado, profile null por whitelist do `handle_new_user` em §2.1), o app mostra tela de erro com link para WhatsApp e botão "Sair". Não tenta auto-criar profile via `supabase.from('profiles').insert(...)` porque a policy `profiles_insert` exige `status='lead'` e isso poderia mascarar bugs reais. Caio resolve manualmente via runbook §4.4.
 
@@ -654,7 +675,9 @@ Após sucesso, redireciona para `/confirme-email` com query string `?email=<emai
 **Auto-focus, progresso e draft (UX para form longo):**
 - Auto-focus no campo "nome completo" no mount.
 - Indicador visual "Etapa X de 12" no topo (visual leve; ainda é um único submit).
-- Draft em `localStorage` chave `cadastro_draft_v1`: salva todos os campos exceto **senha**, **confirmar senha** e o **checkbox de privacidade** (`aceito_privacidade`). Persistir o checkbox seria tóxico LGPD (registro mostraria "aceito" repetido em reloads, fragilizando defesa em disputa de consentimento). Cliente reaceita a cada submit — fricção mínima, defesa robusta. Debounce 500ms. Limpa após signUp bem-sucedido.
+- Draft em `localStorage` chave `cadastro_draft_v1`: salva todos os campos exceto **senha**, **confirmar senha**, **`aceito_privacidade`** e **`aceito_transferencia_internacional`**. Persistir consentimentos seria tóxico LGPD (registro mostraria "aceito" repetido em reloads, fragilizando defesa em disputa de consentimento). Cliente reaceita a cada submit — fricção mínima, defesa robusta.
+- **Formato com TTL:** `{ data: <campos>, savedAt: <epoch ms> }`. No load, descartar se `Date.now() - savedAt > 24*3600*1000` (24h). Reduz superfície de exposição em computador compartilhado e mitiga PII estagnada.
+- Debounce 500ms ao salvar. Limpa após signUp bem-sucedido.
 
 **Campos e tooltips pedagógicos** (memória `feedback_tooltips_pedagogicos`):
 
@@ -668,11 +691,12 @@ Após sucesso, redireciona para `/confirme-email` com query string `?email=<emai
 | Regime de trabalho | select | "CLT, PJ, autônomo etc. Define como calculamos seu líquido e benefícios" | enum |
 | Cidade | text | "Influencia custo de vida considerado no plano" | min 2, max 100 |
 | UF | select 27 estados | — | enum |
-| Telefone | masked input | "Para te contatar caso o email falhe. Apenas números brasileiros" | E.164 BR (`/^\+55[1-9][1-9]\d{8,9}$/`) |
+| Telefone | masked input | "Para te contatar caso o email falhe. Apenas números brasileiros" | E.164 BR (`/^\+55[1-9][1-9]\d{8,9}$/`) — **validação aplicada após PhoneInput normalizar para E.164**, não no input cru |
 | Email | email | "Será seu login. Cuidado com typos — sem ele você não recebe os avisos" | `z.string().email()` |
 | Senha | password | "Mínimo 8 caracteres. Use uma combinação que só você lembre" | min 8 |
 | Confirmar senha | password | — | `match(senha)` |
 | Aceito a [Política de Privacidade](/privacidade) | checkbox | (obrigatório, link com `target="_blank"` para não perder draft) | `z.literal(true)` |
+| Concordo com transferência internacional dos meus dados para EUA (Supabase, Resend), conforme item 4 da Política | checkbox separado | "Necessário porque LGPD Art. 8 §4 exige consentimento específico e destacado para transferência internacional (Art. 33 IX). Sem concordância separada, só sobra Art. 33 V (execução de contrato) — que pode ser questionado em fase pré-pagamento." | `z.literal(true)` |
 
 **Tooltips em mobile (touch + a11y correta):** hover não funciona em touch. Padrão correto:
 - O ícone `(?)` é um `<button aria-expanded={open} aria-controls={popoverId}>` que toggle o popover ao tap (fecha ao tap fora).
@@ -682,7 +706,7 @@ Após sucesso, redireciona para `/confirme-email` com query string `?email=<emai
 
 **PhoneInput:** parser tolerante. Aceita 4 formatos no input — E.164 puro (`+5511987654321`), com máscara (`+55 (11) 98765-4321`), só DDD+número (`11 98765-4321`), com/sem espaços/parênteses. Antes de Zod validar, normaliza para E.164. Se inválido após normalização, exibe erro pedindo o formato esperado.
 
-**DependentesInput:** array dinâmico com botão "Adicionar dependente" abaixo da lista. Limite max=10 (UX em mobile + cobre 99% dos casos reais). Cada linha: label "Dependente N — idade", input numérico, botão "Remover". Sem dependentes é o default. Quando atinge o limite, o botão fica disabled com texto "Limite de 10 dependentes nesta etapa. Para mais, fale comigo no WhatsApp." (visível, não silencioso).
+**DependentesInput:** array dinâmico com botão "Adicionar dependente" abaixo da lista. Limite max=10 (UX em mobile + cobre 99% dos casos reais). Cada linha: label "Dependente N — idade", input numérico, botão "Remover". Sem dependentes é o default. Quando atinge o limite, o botão fica disabled com texto contendo link clicável para WhatsApp (via `whatsappUrl('duvida_geral')`): *"Limite de 10 dependentes nesta etapa. Para mais, [fale comigo no WhatsApp](...)."*
 
 **Campo honeypot anti-bot:** input invisível posicionado fora da viewport, NÃO `display:none` (que bots Puppeteer detectam):
 
@@ -763,10 +787,11 @@ Botão "Voltar" volta para `/aguardando` ou `/liberado` conforme o status atual.
 
 **Concorrência (last-write-wins):** se Caio estiver visualizando `/admin/cliente/:id` enquanto o cliente edita `/meus-dados`, o último UPDATE prevalece. Aceito como dívida na Fase 1A — Caio tipicamente atua sequencialmente. Marcar em §8 e revisar na Fase 1B com `If-Match`/`updated_at` check.
 
-**Botão "Excluir minha conta" (LGPD Art. 18):** abaixo do form, com confirmação dupla via **modal Tailwind custom** (não `window.confirm`/`window.prompt` — `prompt` é parcialmente bloqueado em iOS Safari e WebView/PWA, retorna null silenciosamente):
+**Botão "Excluir minha conta" (LGPD Art. 18):** abaixo do form, com confirmação dupla via **`<ConfirmDialog>`** (wrapper sobre `@headlessui/react` `Dialog` — peer com Tailwind, ~5KB gz, traz foco trap, ESC para fechar e restore-focus prontos). Não usar `window.confirm`/`window.prompt` (`prompt` é parcialmente bloqueado em iOS Safari/WebView/PWA, retorna null silenciosamente).
 
-- Modal 1: `role="dialog" aria-modal="true"`, foco no botão "Cancelar" (default seguro), texto "Esta ação é irreversível. Excluiremos seu cadastro e iniciaremos a exclusão técnica completa em até 15 dias úteis (LGPD Art. 18)."
-- Modal 2 (após "Continuar"): `<input>` controlado, exige texto exato `EXCLUIR` (case-sensitive) para habilitar o botão final. Cancelado/empty → no-op.
+- **Configuração para ação destrutiva:** `dismissOnOverlay={false}` (clicar no fundo NÃO fecha — defesa contra acidente), `closeOnEsc={true}`, foco inicial no botão **"Cancelar"** (default seguro).
+- Modal 1: texto "Esta ação é irreversível. Excluiremos seu cadastro agora. Você receberá email de confirmação em até 15 dias úteis (LGPD Art. 18 §6)."
+- Modal 2 (após "Continuar"): `<input>` controlado exige texto exato `EXCLUIR` (case-sensitive) para habilitar o botão final. ESC ou "Cancelar" → no-op.
 
 **Implementação atômica via Edge Function `delete-own-account`** (não cliente direto):
 - Por que: deletar `profiles` no client + `signOut` separado é não-atômico. Se signOut falhar (rede cair), cliente retorna num estado órfão real (auth.users vivo, profile deletado) e cai no `OrphanProfileError` por bug, não por exclusão.
@@ -775,9 +800,9 @@ Botão "Voltar" volta para `/aguardando` ou `/liberado` conforme o status atual.
 
 > **Sua conta foi excluída.**
 >
-> Recebemos seu pedido. A exclusão técnica completa (incluindo logs de autenticação) será concluída em até 15 dias úteis, em conformidade com a LGPD Art. 18 §6. Você receberá um email de confirmação.
+> Sua conta e seus dados foram removidos agora. Você receberá email de confirmação em até 15 dias úteis (LGPD Art. 18 §6).
 >
-> Se mudar de ideia nesse prazo, fale comigo no WhatsApp: [link].
+> Em caso de dúvida, fale comigo no WhatsApp: [link].
 
 - Trigger `profiles_prevent_last_admin_delete` não bloqueia (cliente comum não é admin).
 
@@ -823,9 +848,7 @@ Texto LGPD-compliant para Fase 1A. **Versão 1 — última atualização lida da
 
 > **Política de Privacidade — Seu Mapa Financeiro**
 >
-> *Versão 1-draft — em revisão jurídica final · Última atualização: ${POLICY_LAST_UPDATED}*
->
-> ⚠ Este texto está em revisão por advogado próprio. As seções 7 (retenção) e 4 (transferência internacional) dependem da definição do regime societário do controlador e da leitura final dos DPAs. A versão final será publicada antes do go-live com aviso explícito de mudança.
+> *Versão 1 — Última atualização: ${POLICY_LAST_UPDATED}*
 >
 > **1. Controlador.** Caio Gurgel Guerra (CPF fornecido a autoridade competente sob solicitação formal), planejador financeiro CFP®, é o controlador dos dados pessoais tratados pela plataforma `meumapafinanceiro.ia.br`. Quando aplicável, o regime societário será atualizado neste item (PF autônoma, ME ou LTDA) com CNPJ correspondente.
 >
@@ -854,7 +877,7 @@ Texto LGPD-compliant para Fase 1A. **Versão 1 — última atualização lida da
 >
 > Os dois implicam **transferência internacional de dados** para os Estados Unidos (LGPD Art. 33). Base legal aplicada:
 > - **Art. 33, V (principal)** — necessário à execução de contrato ou diligências pré-contratuais a pedido do titular: a hospedagem em Supabase é condição operacional indispensável para criar e manter sua conta; o envio via Resend é condição para você receber confirmações de cadastro e avisos sobre o serviço.
-> - **Art. 33, IX (reforço)** — consentimento específico e em destaque do titular: ao marcar a caixa "Aceito a Política de Privacidade" no cadastro, você consente com a transferência internacional descrita aqui.
+> - **Art. 33, IX (reforço)** — consentimento específico e em destaque do titular: no cadastro, há checkbox próprio "Concordo com transferência internacional dos meus dados para EUA (Supabase, Resend) conforme item 4 desta Política", separado do checkbox de aceite geral da Política. Atende LGPD Art. 8 §4 (consentimento específico e destacado por finalidade).
 >
 > *Cláusulas contratuais aprovadas pela ANPD (Art. 33, VIII): a ANPD ainda não publicou o conjunto definitivo (Resolução CD/ANPD 19/2024 está em consulta). Quando publicado, os DPAs serão revisados conforme. Hoje, os DPAs Supabase/Resend usam cláusulas-padrão SCCs (GDPR), reconhecidas internacionalmente como salvaguarda equivalente.*
 >
@@ -866,12 +889,10 @@ Texto LGPD-compliant para Fase 1A. **Versão 1 — última atualização lida da
 > - **Correção dos próprios dados:** disponível diretamente em **Meus dados** após login.
 > - **Exclusão da conta:** disponível em **Meus dados → Excluir minha conta** (a deleção do email/login é completada pelo controlador conforme runbook interno; você recebe confirmação por email).
 >
-> **7. Retenção.** Mantemos seus dados enquanto a relação consultiva estiver ativa. Após encerramento, conservamos pelos prazos prescricionais aplicáveis ao regime do controlador, dentre eles:
+> **7. Retenção.** Mantemos seus dados enquanto a relação consultiva estiver ativa. Após encerramento, conservamos pelos prazos legais aplicáveis ao regime do controlador, dentre eles:
 > - **Tributário/Fiscal:** prazos do Decreto 70.235/72 e legislação correlata (até 5 anos a partir do exercício seguinte).
 > - **Cobranças/relações de consumo:** prazo prescricional do Código Civil (Art. 206 §5º I — 5 anos para dívidas líquidas) e CDC.
-> - **Boas práticas profissionais:** orientações do Código de Ética do Planejar/Anbima sobre guarda de documentação técnica de planos de planejamento financeiro.
->
-> *A redação final desta seção depende da formalização do regime societário do controlador (PF, ME ou LTDA), que é bloqueador externo antes do go-live.*
+> - **Obrigações regulatórias profissionais:** Resolução CVM 178/2023 (quando aplicável ao regime de atuação) e orientações Planejar/Anbima enquanto vinculantes por contrato com a entidade certificadora.
 >
 > **A solicitação de exclusão pelo titular (item 6) prevalece sobre este prazo de retenção, exceto quando houver dever legal específico de guarda** — nesses casos, comunicaremos a base legal aplicável e o prazo restante.
 >
@@ -885,7 +906,16 @@ Texto LGPD-compliant para Fase 1A. **Versão 1 — última atualização lida da
 >
 > Em caso de dúvidas: `caio.gurgel.guerra@gmail.com`.
 
-> ⚠ **Bloqueador externo antes do go-live:** Caio confirma com advogado próprio se a base legal "execução de contrato" cobre a fase de cadastro pré-pagamento (tratativas pré-contratuais — Art. 7º V já cobre, mas confirmar redação) e se as transferências internacionais estão adequadamente fundamentadas no DPA assinado. Se Caio atuar sob CVM 178/2023 (consultor de valores mobiliários), o item 11 precisa ajuste. Se atuar como MEI/LTDA, item 1 precisa adicionar CNPJ.
+⚠ **Estratégia de publicação (interno — não vai pra `/privacidade`):**
+
+A versão acima é "Versão 1" pública, sem badge "draft" — publicar texto com selo de "em revisão" cria auto-incriminação em fiscalização ANPD. Em vez disso, antes do go-live:
+
+1. Caio confirma com advogado próprio (a) base legal de execução de contrato pré-pagamento (Art. 7º V), (b) DPAs Supabase/Resend assinados, (c) regime societário (item 1 CNPJ se PJ; item 7 fundamentação aplicável), (d) item 11 se for atuar sob CVM 178/2023.
+2. Aplicar ajustes do advogado no texto.
+3. Atualizar `POLICY_LAST_UPDATED` para a data da publicação final.
+4. Só então fazer deploy do `/privacidade` em produção.
+
+Enquanto a aprovação não vier, manter `/privacidade` como rota pública mostrando a versão acima é aceitável **se e somente se** os bloqueadores do A.1 já forem resolvidos. Caso contrário, considerar (a) feature flag escondendo `/privacidade` (rota responde 404) e bloqueando cadastro até aprovação, ou (b) desenvolvimento em ambiente de staging até liberação.
 
 ### 3.11 Footer global
 
@@ -922,7 +952,7 @@ supabase.from('profiles_with_email')
   .order('created_at', { ascending: false });
 ```
 
-A view `profiles_with_email` (definida em §2.1) tem `security_invoker = true`, então respeita a RLS de `profiles` — admin vê todos, cliente comum só vê o próprio.
+A view `profiles_with_email` (definida em §2.1) usa `security_invoker = false` (default) com filtro embutido `where (auth.uid() = p.id or public.is_admin())` — comportamento equivalente à RLS de `profiles`: admin vê todos, cliente comum só vê o próprio. NÃO usa `security_invoker = true` porque exigiria GRANT em `auth.users` para `authenticated`, o que vazaria email.
 
 **Filtros:** select de status no topo (todos / lead / rejeitado / liberado / em_onboarding / submetido / em_consultoria / concluido). Estado local, sem persistência em URL.
 
@@ -971,9 +1001,9 @@ Procedimentos manuais que o admin executa fora da UI. **Registro de operações 
 
 **Cliente pede exclusão dos dados (LGPD Art. 18):**
 
-*Caminho A — cliente usa botão "Excluir minha conta" em `/meus-dados`:* a Edge Function `delete-own-account` (§3.7) já fez tudo atomicamente — auth.users e profile deletados via service_role, email automático "Cliente <nome> solicitou exclusão LGPD em <data>" enviado pra `ADMIN_NOTIFICATION_EMAIL`. Caio só precisa:
+*Caminho A — cliente usa botão "Excluir minha conta" em `/meus-dados`:* a Edge Function `delete-own-account` (§5.4.1) já fez tudo atomicamente — auth.users e profile deletados via service_role, **2 emails automáticos** disparados (confirmação ao titular Art. 18 §6 + notificação a `ADMIN_NOTIFICATION_EMAIL` para auditoria). Caio só precisa:
 1. Verificar email recebido e registrar na planilha (`tipo_operacao=eliminacao_titular_self_service, base_legal=Art.18`).
-2. Enviar email de confirmação ao titular dentro de 15 dias úteis informando que a exclusão técnica foi concluída.
+2. **Se NÃO receber o email "Cliente solicitou exclusão" em até 1h após cliente clicar**, é sinal de falha no Resend — investigar via Edge Function logs (a deleção em si NÃO é desfeita, só a notificação).
 
 *Caminho B — cliente pede por canal externo (email/WhatsApp):*
 1. Confirmar identidade respondendo do email cadastrado (não outro canal — evita engenharia social).
@@ -1184,10 +1214,22 @@ Cada `return` da função usa `respond(...)`: `respond({ error: 'unauthorized' }
 5. Se `updated` tem linha: obter email via `admin.auth.admin.getUserById(clientId)` (NÃO do payload — defesa contra IDOR/email injection). Chamar Resend. Retorna `{ ok: true, emailSent: <bool> }`.
 6. Falha de Resend não desfaz UPDATE — loga e retorna `emailSent: false`. Cliente fica liberado mesmo sem email; Caio acompanha pelo `/admin` ou avisa via WhatsApp.
 
+**Try/catch global** envolvendo todo o algoritmo (passos 1–6):
+```ts
+try {
+  /* ... 1-6 ... */
+} catch (e) {
+  console.error('release-client exception:', e);
+  return respond({ error: 'internal' }, 500);
+}
+```
+Sem isso, exceção não-capturada vira 500 sem CORS → frontend só vê "erro de rede" mesmo com UPDATE bem-sucedido (e o admin re-clica achando que falhou — idempotência cobre, mas UX é ruim).
+
 **Frontend (admin) — UX dos toasts:**
 - `{ ok: true, emailSent: true }` → "Cliente liberado. Email enviado."
 - `{ ok: true, emailSent: false }` → "Cliente liberado, mas o email falhou. Avise por WhatsApp."
 - `{ ok: true, alreadyReleased: true }` → "Cliente já estava liberado (email pode ter sido enviado anteriormente)." — texto explícito sobre a ambiguidade do timeout (UPDATE pode ter rodado, frontend timeout antes do retorno; próximo clique vê este estado).
+- `{ error: 'internal' }` (status 500) → "Erro interno. Tente novamente em instantes."
 
 **Email "Acesso liberado":**
 - **De:** `Seu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>`
@@ -1218,17 +1260,42 @@ Arquivo: `supabase/functions/delete-own-account/index.ts`
 
 **Algoritmo:**
 1. Validar JWT com `supabaseUser.auth.getUser()`. Se inválido → `respond({ error: 'unauthorized' }, 401)`.
-2. Com `service_role`, ler `nome_completo` do profile (para o email pra Caio).
-3. Com `service_role`, deletar via `admin.auth.admin.deleteUser(user.id)` — cascateia profile via FK. Trigger `profiles_prevent_last_admin_delete` aborta se for admin único (caso impossível para cliente comum, mas defesa em profundidade).
-4. Disparar email para `ADMIN_NOTIFICATION_EMAIL` via Resend:
-   - **Assunto:** `Cliente solicitou exclusão LGPD — ${nome_completo}`
-   - **Corpo:**
-     > Cliente **${nome_completo}** (id: ${userId}, email: ${email}) usou o botão "Excluir minha conta" em ${timestamp}.
-     >
-     > A exclusão de auth.users + profile já foi concluída tecnicamente. Resta:
-     > - Registrar na planilha LGPD Art. 37 (`tipo_operacao=eliminacao_titular_self_service`).
-     > - Enviar email de confirmação ao titular dentro de 15 dias úteis.
-5. Retornar `respond({ ok: true })`. Falha de Resend não desfaz a deleção — log + retorno OK (cliente já viu sua conta sumir, prioridade é não travar).
+2. Com `service_role`, ler `nome_completo` e `email` do profile (para os 2 emails).
+3. Com `service_role`, deletar via `admin.auth.admin.deleteUser(user.id)` — cascateia profile via FK. Tratamento de erro:
+   - Se erro contém indicador de `last_admin` (trigger `profiles_prevent_last_admin_delete` abortou — defesa em profundidade, normalmente impossível para cliente comum) → `respond({ error: 'cannot_delete_last_admin' }, 409)` com mensagem amigável no frontend.
+   - Outros erros → propagam para o `try/catch` global (passo 6).
+4. **Disparar 2 emails em paralelo via Resend** (corta passo manual sujeito a esquecimento):
+   - **Email para o titular** (confirmação Art. 18 §6):
+     - **Para:** `${email}`
+     - **Assunto:** `Sua conta foi excluída — Seu Mapa Financeiro`
+     - **Corpo:**
+       > Olá, ${nome_completo}!
+       >
+       > Confirmamos que sua conta no Seu Mapa Financeiro foi excluída em ${timestamp}, conforme seu pedido (LGPD Art. 18).
+       >
+       > Os dados pessoais associados (cadastro, registros de autenticação) foram removidos dos nossos sistemas. Backups técnicos podem reter cópias residuais por até 30 dias antes da rotação automática, conforme política de privacidade.
+       >
+       > Em caso de dúvida, fale comigo: caio.gurgel.guerra@gmail.com.
+   - **Email para `ADMIN_NOTIFICATION_EMAIL`** (auditoria Art. 37):
+     - **Assunto:** `Cliente solicitou exclusão LGPD — ${nome_completo}`
+     - **Corpo:**
+       > Cliente **${nome_completo}** (id: ${userId}, email: ${email}) usou o botão "Excluir minha conta" em ${timestamp}.
+       >
+       > A exclusão de auth.users + profile já foi concluída tecnicamente. Resta apenas:
+       > - Registrar na planilha LGPD Art. 37 (`tipo_operacao=eliminacao_titular_self_service`).
+5. Falha de Resend (qualquer um dos 2) não desfaz a deleção — log via `console.error` + retorno OK. O `audit-orphan-leads` não cobre esse failure mode (só audita leads em status='lead'); por isso, se Caio NÃO receber o email "Cliente solicitou exclusão" dentro de 1h após o cliente clicar, é sinal de problema no Resend. Documentado em §7.8 como risco aceito 1A.
+6. Retornar `respond({ ok: true })`.
+
+**Try/catch global** envolvendo passos 1–6:
+```ts
+try {
+  /* ... passos 1-6 ... */
+} catch (e) {
+  console.error('delete-own-account exception:', e);
+  return respond({ error: 'internal' }, 500);
+}
+```
+Sem isso, exceção não-capturada vira 500 sem CORS → frontend só vê "erro de rede".
 
 ### 5.5 Variáveis de ambiente
 
@@ -1327,7 +1394,8 @@ src/
 │   ├── FullScreenSpinner.tsx      # Estado de loading unificado (§3.2) — evita duplo flash
 │   ├── OrphanProfileError.tsx     # Tela para useProfile.status === 'orphan' (§3.2)
 │   ├── ConnectionErrorScreen.tsx  # Tela para useProfile.status === 'error' com retry (§3.2)
-│   ├── ConfirmDialog.tsx          # Modal Tailwind genérico (substitui window.confirm em ações sensíveis)
+│   ├── ConfirmDialog.tsx          # Modal de confirmação (wrapper sobre @headlessui/react Dialog) — ações sensíveis (§3.7)
+│   ├── ErrorBoundary.tsx          # Captura erros não-tratados de render (§6.1.1)
 │   ├── Footer.tsx                 # Compartilhado entre AuthLayout e PublicLayout
 │   └── forms/
 │       ├── FormField.tsx          # Wrapper com label + erro + tooltip touch-friendly
@@ -1397,11 +1465,12 @@ export function App() {
             <Route path="/termos" element={<TermosPage />} />
             <Route path="/conta-excluida" element={<ContaExcluidaPage />} />
 
-            {/* Auth pages — bloqueadas para usuários já autenticados via RequireGuest.
-                Exceção: /redefinir-senha (sessão de recovery transitória). */}
+            {/* Auth pages — RequireGuest somente em /cadastro e /login.
+                /recuperar-senha e /redefinir-senha permitem sessão (admin pedindo
+                troca da própria senha; recovery transitório). Ver §3.2. */}
             <Route path="/cadastro" element={<RequireGuest><CadastroPage /></RequireGuest>} />
             <Route path="/login" element={<RequireGuest><LoginPage /></RequireGuest>} />
-            <Route path="/recuperar-senha" element={<RequireGuest><RecuperarSenhaPage /></RequireGuest>} />
+            <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
             <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
             <Route path="/confirme-email" element={<ConfirmeEmailPage />} />
           </Route>
@@ -1443,6 +1512,13 @@ export function App() {
 **Modal:** Fase 1A usa `window.confirm()` nativo para "Liberar" e "Recusar" (workflow leve). Trocar por modal Tailwind se virar atrito real.
 
 **i18n:** PT-BR hardcoded no JSX. Sem i18n na Fase 1A.
+
+**WhatsApp helper centralizado:** placeholders `[link]` viram chamadas de função `whatsappUrl(context)` em `src/lib/contact/whatsapp.ts`. Função monta `https://wa.me/55${WHATSAPP_DDD}${WHATSAPP_NUM}?text=${encodeURIComponent(template)}` com mensagem pré-preenchida por contexto:
+- `'aguardando'` → "Olá Caio, sou {nome} e quero saber sobre o status do meu cadastro."
+- `'liberado'` → "Olá Caio, fui liberado e quero combinar próximos passos."
+- `'email_errado'` → "Olá Caio, errei o email no cadastro e preciso refazer."
+- `'orfao'` → "Olá Caio, deu erro no meu cadastro (sou {email})."
+- `'duvida_geral'` → vazio (cliente digita).
 
 **Estilo:** seguir padrão visual existente:
 - Header gradient azul: `bg-gradient-to-r from-blue-900 to-indigo-700 px-6 py-5`
@@ -1577,7 +1653,11 @@ Smoke + RLS test são checagens de release, não testes automatizados — coeren
 | 11 | admin único | DELETE auth.users via Studio (cascade dispara) | trigger `profiles_prevent_last_admin_delete` aborta com mensagem específica |
 | 12 | userA | UPDATE outro perfil via PostgREST | RLS bloqueia (0 rows affected) |
 | 13 | profile órfão de userA (após RAISE WARNING no `handle_new_user`) | INSERT direto via PostgREST com `data_nascimento < 18 anos`, `is_admin=false`, `status='lead'` | trigger `profiles_validate_domain` rejeita com mensagem específica (testa que floor 18 anos não fura) |
-| 14 | userA `delete from profiles where id = <admin_id>` direto (sem CASCADE) | trigger `profiles_prevent_last_admin_delete` aborta | bloqueia mesmo via SQL direto no Studio |
+| 14a | userA | DELETE em outro perfil (`delete from profiles where id = <admin_id>`) | RLS retorna 0 rows affected — não chega ao trigger (testa policy `profiles_delete_self`) |
+| 14b | admin (único) | DELETE em si mesmo (`delete from profiles where id = <admin_id>` com JWT do admin) | trigger `profiles_prevent_last_admin_delete` aborta — testa o trigger isoladamente da RLS |
+| 15 | admin com 100 perfis seed | `EXPLAIN ANALYZE select * from profiles_with_email where is_admin = false order by created_at desc` | confirmar (a) índice parcial `profiles_admin_list_idx` é usado, (b) `is_admin()` é avaliada 1x (STABLE), (c) tempo total < 50ms |
+| 16 | userA | `select email from profiles_with_email where id = <userB_id>` | 0 rows (filtro `where` da view bloqueia) |
+| 17 | sem JWT (anon) | `select * from profiles_with_email` | 0 rows (filtro requer auth.uid()) ou 401 dependendo do PostgREST |
 
 Cada caso vira um `curl` ou request via PostgREST. Documentar resultados antes do go-live.
 
@@ -1591,7 +1671,7 @@ Cada caso vira um `curl` ou request via PostgREST. Documentar resultados antes d
 
 **Pré-requisitos manuais (uma vez só):**
 
-5. Criar projeto Supabase em supabase.com → copiar URL e anon key.
+5. Criar projeto Supabase em supabase.com → copiar URL e anon key. **Criar também projeto `staging` espelho** (mesmo time, free tier permite até 2 projetos por org) para rodar smoke tests destrutivos (`RESEND_API_KEY` inválida, etc) sem afetar produção.
 6. **Configurar Auth → Settings:** "Confirm email" = ON, "Enable signups" = ON, **JWT expiry = 3600 (1h)** + Refresh Token Lifetime = 86400 (24h) em vez do default (1h JWT + 1 ano refresh). Reduzir só o JWT não força reauth — o refresh renova silenciosamente. Para garantir que sessão expire em 24h, ambos precisam ser reduzidos. Trade-off em §8.
 7. Customizar templates de email Supabase em PT-BR (textos da §5.2).
 8. Configurar redirect URLs no Supabase Auth → URL Configuration:
@@ -1696,6 +1776,9 @@ Cada caso vira um `curl` ou request via PostgREST. Documentar resultados antes d
 | **Transferência internacional sem fundamento explícito** | Política §3.10 item 4 declara base legal; DPAs Supabase/Resend assinados como pré-req |
 | **Sucessão / incapacidade do controlador** | Runbook §4.4 com cofre digital e processo de encerramento ordenado |
 | Política de privacidade — base legal e regulamentação CFP/CVM | BLOQUEADOR antes do go-live: Caio confirma com advogado próprio (políticas §3.10 itens 7 e 11; CNPJ no §3.11; número Planejar) |
+| Falha silenciosa de Resend em `delete-own-account` (Caio não recebe notificação de exclusão) | Log via `console.error` + monitoramento manual (Caio confere se recebeu email "Cliente solicitou exclusão" em até 1h). Aceito como risco 1A; Fase 1B+ pode introduzir tabela `lgpd_audit_log` com INSERT antes da deleção (sobrevive a falha de email) |
+| Janela de poder do admin em sessão (24h via Refresh Token) | Mitigações 1A: Caio acessa só em devices próprios; lógica de re-auth em ações sensíveis (clicar "Liberar") fica em Fase 1B. Refresh Token de 24h em vez de 1 ano default já reduz superfície |
+| Smoke test com `SERVICE_ROLE_KEY` em shell history | Antes de rodar `curl` em terminal, executar `unset HISTFILE` ou usar arquivo `.env` lido via `--data @file.json` + `Authorization: Bearer $(cat key)`. Documentado em §7.7. |
 
 ### 7.9 Observabilidade
 
@@ -1726,7 +1809,9 @@ Decisões conscientes que podem ser revistas em fases futuras:
 - **`/liberado` exibe `updated_at` como "data de liberação"** — aproximação imperfeita; coluna dedicada `liberado_at` entra se a UX da Fase 1B exigir.
 - **Modal `window.confirm()`/`prompt()`** apenas em Liberar/Recusar do `/admin` (uso interno por Caio) — exclusão de conta do cliente já usa modal Tailwind custom (§3.7). Trocar Liberar/Recusar por `ConfirmDialog` se Caio reclamar.
 - **Re-derivação de `is_admin` sem cache** em `release-client`/`delete-own-account` — round-trip por chamada. OK na 1A (1 admin); Fase 1B+ pode usar cache de 60s na própria Edge Function se houver múltiplos admins.
-- **JWT 1h + Refresh Token 24h (configurado)** — força reauth a cada 24h em todos os usuários. Para conta admin (Caio) seria desejável uma janela ainda menor (4–8h) dado o poder de UPDATE em todos os profiles, mas Supabase Auth não permite TTL diferenciado por role. Aceito; Fase 1B pode adicionar reauth-on-sensitive-action no `/admin` (ex: re-pedir senha antes de "Liberar").
+- **JWT 1h + Refresh Token 24h (configurado)** — força reauth a cada 24h em todos os usuários. **Janela material de exposição:** se laptop de Caio (admin) for comprometido em estado autenticado, atacante tem até 24h de poder de UPDATE em todos os profiles (incluindo "liberar" cliente fictício). Para conta admin seria desejável janela menor (4–8h) ou reauth-on-sensitive-action, mas Supabase Auth não permite TTL diferenciado por role. **Aceito como dívida 1A;** Fase 1B+ adiciona re-pedir senha antes de "Liberar"/"Recusar"/"deleteUser via admin API".
+- **Sem `lgpd_audit_log` dedicado** — a deleção via `delete-own-account` é registrada por email pra Caio (auditoria por Resend, não por banco). Se Resend cair, perde-se rastro. Fase 1B+: criar tabela `lgpd_audit_log (id, user_id, action, ts, payload jsonb)` com INSERT antes da deleção via service_role — sobrevive a falha de email. OK na 1A dado volume baixo.
+- **`audit-orphan-leads` janela 1h–24h** — cobre detecção tardia de webhook silencioso por até 24h. Lead que ficar 25h+ sem notificação some do digest. Fase 1B+: coluna `notification_sent boolean default false` em profiles, atualizada por `notify-new-lead` no sucesso — auditoria vira "sem `notification_sent` há > 1h" sem janela superior.
 - **SEO via `useEffect` setando `document.title`** — sem `<meta description>` nem Open Graph dinâmico. Bot do WhatsApp/iMessage faz preview com `<head>` estático (mesmo preview pra todas as rotas). OK na 1A; Fase 1B pode adotar `react-helmet-async`.
 - **Sem indicador de força de senha (zxcvbn)** — só validamos `min 8`. Não bloqueador; comum em formulários modernos. Adicionar se houver feedback de senhas fracas.
 
@@ -1746,7 +1831,7 @@ Decisões conscientes que podem ser revistas em fases futuras:
 - [x] Estrutura de arquivos com layouts globais, App.tsx com providers e RequireGuest
 - [x] Smoke test (caminho feliz + edge cases auth + trigger whitelist/não-whitelist + Resend em staging + mobile + a11y + EXCLUIR conta) e plano de release prontos
 - [x] Runbook operacional (LGPD self-service e externo, email errado, lead parado, menor, incidente ANPD, sucessão, ausência temporária do encarregado, rotação de WEBHOOK_SECRET)
-- [x] Política de privacidade LGPD-compliant em status `1-draft` (DPO, transferência intl com Art. 33 V+IX, retenção sem Lei 10.406, direitos com prazo, draft do checkbox excluído)
+- [x] Política de privacidade LGPD-compliant Versão 1 (DPO, transferência intl com Art. 33 V+IX e checkbox separado, retenção por prazos legais aplicáveis, direitos com prazo, draft de cadastro exclui ambos os checkboxes de consentimento)
 - [x] Tratamento explícito de open redirect e regressão do `identities.length`
 - [x] LIA documentado em `docs/legal/lia-ip-logs.md`
 
@@ -1760,7 +1845,7 @@ Decisões conscientes que podem ser revistas em fases futuras:
 - [ ] **CNPJ/regime societário definido** (PF, ME ou LTDA — MEI **não** serve para CNAE 6920-6/01) → atualizar §3.10 itens 1 e 7
 - [ ] **Encarregado (DPO) declarado em `/privacidade`** (Caio é controlador-encarregado na 1A)
 - [ ] **Número de registro Planejar para uso da marca CFP®** no footer ("Reg. Planejar nº XXXXX")
-- [ ] **Política §3.10 confirmada com advogado próprio** — remover badge `1-draft` ao publicar versão final (base legal por categoria, transferência internacional, retenção aplicável ao regime, item 11 sobre não recomendação CVM)
+- [ ] **Política §3.10 confirmada com advogado próprio** antes do go-live (base legal por categoria, transferência internacional Art. 33, retenção aplicável ao regime societário, item 11 sobre não recomendação CVM 178/2023). Estratégia documentada em §3.10 (logo após o texto da política) sobre publicar `/privacidade` com versão revisada ou bloquear cadastro até liberação
 - [ ] **`docs/legal/lia-ip-logs.md` escrito** (3 perguntas: necessidade, balanceamento, expectativa do titular)
 - [ ] **Setup `/privacidade` lê `POLICY_LAST_UPDATED`** de `src/lib/legal/version.ts` em vez de string hardcoded
 
@@ -1778,7 +1863,8 @@ Decisões conscientes que podem ser revistas em fases futuras:
 - Padrão visual: memória `project_estrutura_calculadora`
 - Workflow leve: memória `feedback_workflow_leve`
 - Tooltips pedagógicos: memória `feedback_tooltips_pedagogicos`
-- Code review aplicado: 5 revisores paralelos em **duas rodadas** (SQL/RLS, auth/Supabase, Edge Functions/Resend, UX/Frontend, Compliance/LGPD/CFP)
-  - Rodada 1: 14 críticos + 18 altos + ~25 médios
-  - Rodada 2 (regressões + novos achados): 8 críticos + 16 altos + ~12 médios — incluindo bugs de runtime (`crypto.subtle.timingSafeEqual` inexistente, CORS faltando em respostas não-preflight) e regressões do design (view sem permissão em `auth.users`, catch-all do trigger mascarando bugs)
-- Documentos correlatos: `docs/legal/lia-ip-logs.md` (LIA — bloqueador externo)
+- Code review aplicado: 5 revisores paralelos em **três rodadas** (SQL/RLS, auth/Supabase, Edge Functions/Resend, UX/Frontend, Compliance/LGPD/CFP) — 15 reviews independentes:
+  - Rodada 1: 14 críticos + 18 altos + ~25 médios.
+  - Rodada 2 (regressões + bugs de runtime latentes): 8 críticos + 16 altos + ~12 médios — incluindo bugs (`crypto.subtle.timingSafeEqual` inexistente, CORS faltando em respostas não-preflight) e regressões (view sem permissão em `auth.users`, catch-all do trigger mascarando bugs).
+  - Rodada 3 (convergência): 2 críticos compliance + 10 altos + ~10 médios — refinamentos de redação, consistência (security_invoker em §4.1, ErrorBoundary), compliance final (checkbox separado para Art. 33 IX, badge draft removido) e robustez (try/catch global, TTL do draft).
+- Documentos correlatos: `docs/legal/lia-ip-logs.md` (LIA — bloqueador externo).
