@@ -88,6 +88,29 @@ describe('normalizeInputs', () => {
     expect(state.normalized?.ipcaAnnualRate).toBe(0.045)
   })
 
+  it('rejects CDI and IPCA values out of allowed range', () => {
+    const tooHighCdi = normalizeInputs(baseInputs({ cdiAnnualPercent: 101 }), START_DATE)
+    expect(tooHighCdi.normalized).toBeNull()
+    expect(tooHighCdi.errors.cdiAnnualPercent).toBe('Informe o CDI anual.')
+
+    const tooLowIpca = normalizeInputs(baseInputs({ ipcaAnnualPercent: -100 }), START_DATE)
+    expect(tooLowIpca.normalized).toBeNull()
+    expect(tooLowIpca.errors.ipcaAnnualPercent).toBe('Informe o IPCA anual.')
+  })
+
+  it('rejects active rate fields out of allowed range', () => {
+    const cdiPercentTooHigh = normalizeInputs(baseInputs({ rateType: 'cdi_percent', cdiPercent: 1001 }), START_DATE)
+    expect(cdiPercentTooHigh.normalized).toBeNull()
+    expect(cdiPercentTooHigh.errors.cdiPercent).toBe('Informe o percentual do CDI.')
+
+    const fixedTooLow = normalizeInputs(
+      baseInputs({ rateType: 'fixed', fixedAnnualPercent: -100, cdiPercent: null }),
+      START_DATE
+    )
+    expect(fixedTooLow.normalized).toBeNull()
+    expect(fixedTooLow.errors.fixedAnnualPercent).toBe('Informe a taxa prefixada.')
+  })
+
   it('preserves hasMonthlyContribution but uses zero aporte when disabled', () => {
     const state = normalizeInputs(baseInputs({ hasMonthlyContribution: false, monthlyContribution: 500 }), START_DATE)
     expect(state.normalized?.hasMonthlyContribution).toBe(false)
@@ -184,15 +207,15 @@ describe('calculateInvestimentos', () => {
   it('emits IOF warning when a taxable positive-yield lot is under 30 days old', () => {
     const state = calculateInvestimentos(
       baseInputs({
-        initialAmount: 0,
-        hasMonthlyContribution: true,
-        monthlyContribution: 100,
+        initialAmount: 1000,
+        hasMonthlyContribution: false,
+        monthlyContribution: 0,
         termValue: 1,
         fixedAnnualPercent: 12,
         rateType: 'fixed',
         isTaxExempt: false,
       }),
-      START_DATE
+      new Date(2026, 0, 31)
     )
 
     expect(state.result!.warnings).toContain('IOF nao considerado para lotes com menos de 30 dias.')

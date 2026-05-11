@@ -38,7 +38,7 @@ export default function Home() {
             <span className="text-3xl">{calc.icon}</span>
             <h2 className="text-lg font-semibold text-slate-800">{calc.title}</h2>
             <p className="text-sm text-slate-500">{calc.description}</p>
-            <span className="mt-auto text-sm font-medium text-blue-600">Acessar -&gt;</span>
+            <span className="mt-auto text-sm font-medium text-blue-600">Acessar {'->'}</span>
           </Link>
         ))}
       </div>

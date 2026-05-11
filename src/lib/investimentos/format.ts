@@ -13,9 +13,11 @@ export function parseBrazilianPercent(value: string): number | null {
   const trimmed = value.trim()
   if (!trimmed) return null
 
-  const normalized = trimmed
-    .replace(/[^\d,.-]/g, '')
-    .replace(',', '.')
+  const cleaned = trimmed.replace(/[^\d,.-]/g, '')
+  const hasComma = cleaned.includes(',')
+  const normalized = hasComma
+    ? cleaned.replace(/\./g, '').replace(',', '.')
+    : cleaned
 
   const parsed = Number.parseFloat(normalized)
   return Number.isFinite(parsed) ? parsed : null

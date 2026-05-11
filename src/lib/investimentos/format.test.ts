@@ -29,6 +29,7 @@ describe('parseBrazilianPercent', () => {
     expect(parseBrazilianPercent('10,65')).toBe(10.65)
     expect(parseBrazilianPercent('10.65')).toBe(10.65)
     expect(parseBrazilianPercent('100%')).toBe(100)
+    expect(parseBrazilianPercent('1.000,50')).toBe(1000.5)
   })
 
   it('returns null for empty percent input', () => {

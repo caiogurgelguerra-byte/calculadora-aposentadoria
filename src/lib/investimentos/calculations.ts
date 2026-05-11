@@ -77,11 +77,22 @@ function validateRateField(
   errors: InvestimentosErrors,
   field: keyof InvestimentosErrors,
   value: number | null,
-  emptyMessage: string
+  emptyMessage: string,
+  minExclusive?: number,
+  maxInclusive?: number
 ) {
   if (value === null || Number.isNaN(value)) {
     errors[field] = emptyMessage
     return
+  }
+
+  if (minExclusive !== undefined && value <= minExclusive) {
+    errors[field] = emptyMessage
+    return
+  }
+
+  if (maxInclusive !== undefined && value > maxInclusive) {
+    errors[field] = emptyMessage
   }
 }
 
@@ -139,11 +150,11 @@ function simulateProduct(
   if (product.taxable) {
     for (const lot of lots) {
       const elapsedDays = daysBetween(lot.date, redemptionDate)
+      const lotYield = Math.max(0, lot.value - lot.principal)
+      if (lotYield <= 0) continue
       if (elapsedDays < 30) {
         hasTaxablePositiveYieldLotUnder30Days = true
       }
-      const lotYield = Math.max(0, lot.value - lot.principal)
-      if (lotYield <= 0) continue
       tax += lotYield * getIrRateByDays(elapsedDays)
     }
   }
@@ -229,15 +240,15 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
     errors.termValue = 'Informe um prazo valido.'
   }
 
-  validateRateField(errors, 'cdiAnnualPercent', inputs.cdiAnnualPercent, 'Informe o CDI anual.')
-  validateRateField(errors, 'ipcaAnnualPercent', inputs.ipcaAnnualPercent, 'Informe o IPCA anual.')
+  validateRateField(errors, 'cdiAnnualPercent', inputs.cdiAnnualPercent, 'Informe o CDI anual.', -0.0000001, 100)
+  validateRateField(errors, 'ipcaAnnualPercent', inputs.ipcaAnnualPercent, 'Informe o IPCA anual.', -99.99, 100)
 
   if (inputs.rateType === 'cdi_percent') {
-    validateRateField(errors, 'cdiPercent', inputs.cdiPercent, 'Informe o percentual do CDI.')
+    validateRateField(errors, 'cdiPercent', inputs.cdiPercent, 'Informe o percentual do CDI.', -0.0000001, 1000)
   }
 
   if (inputs.rateType === 'fixed') {
-    validateRateField(errors, 'fixedAnnualPercent', inputs.fixedAnnualPercent, 'Informe a taxa prefixada.')
+    validateRateField(errors, 'fixedAnnualPercent', inputs.fixedAnnualPercent, 'Informe a taxa prefixada.', -99.99, 100)
   }
 
   if (inputs.rateType === 'ipca_plus') {
@@ -245,7 +256,9 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
       errors,
       'ipcaSpreadAnnualPercent',
       inputs.ipcaSpreadAnnualPercent,
-      'Informe a taxa real acima do IPCA.'
+      'Informe a taxa real acima do IPCA.',
+      -99.99,
+      100
     )
   }
 
