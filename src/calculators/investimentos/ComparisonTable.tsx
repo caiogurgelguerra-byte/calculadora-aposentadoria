@@ -19,7 +19,7 @@ function formatSignedCurrency(value: number): string {
 
 export default function ComparisonTable({ rows }: Props) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-[720px] w-full text-sm">
           <caption className="sr-only">Comparativo liquido final dos investimentos</caption>
@@ -32,7 +32,7 @@ export default function ComparisonTable({ rows }: Props) {
               <th className="text-right font-semibold px-4 py-3">Dif. liquida vs seu investimento</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {rows.map((row) => (
               <tr
                 key={row.id}

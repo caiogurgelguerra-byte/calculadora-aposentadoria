@@ -117,8 +117,11 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
     ) : null
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
-      <h2 className="text-base font-semibold text-slate-800">Dados do investimento</h2>
+    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+      <div>
+        <h2 className="text-base font-semibold text-slate-950">Dados do investimento</h2>
+        <p className="mt-1 text-xs text-slate-500">Use valores aproximados para comparar cenarios.</p>
+      </div>
 
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-gray-600">Valor inicial</span>
@@ -128,7 +131,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
             type="text"
             aria-label="Valor inicial"
             inputMode="decimal"
-            className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-300 pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="0,00"
             value={initialAmount}
             onFocus={() => setFocusedField('initialAmount')}
@@ -149,14 +152,14 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
 
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-semibold text-gray-700">Aporte mensal</legend>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 cursor-pointer">
+          <span className="text-sm font-medium text-slate-700">Fazer aportes mensais</span>
           <input
             type="checkbox"
-            className="w-4 h-4 accent-blue-600"
+            className="w-4 h-4 accent-emerald-600"
             checked={value.hasMonthlyContribution}
             onChange={(event) => update({ hasMonthlyContribution: event.target.checked })}
           />
-          <span className="text-sm font-medium text-gray-600">Fazer aportes mensais</span>
         </label>
         {value.hasMonthlyContribution ? (
           <label className="flex flex-col gap-1">
@@ -167,7 +170,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 type="text"
                 aria-label="Valor do aporte mensal"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="0,00"
                 value={monthlyContribution}
                 onFocus={() => setFocusedField('monthlyContribution')}
@@ -195,7 +198,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
             type="number"
             aria-label="Prazo"
             min={1}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
             value={termValue}
             onFocus={() => setFocusedField('termValue')}
             onChange={(event) => {
@@ -215,7 +218,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
           <span className="text-sm font-medium text-gray-600">Unidade</span>
           <select
             aria-label="Unidade"
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
             value={value.termUnit}
             onChange={(event) => update({ termUnit: event.target.value as TermUnit })}
           >
@@ -232,7 +235,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
             type="text"
             aria-label="CDI medio projetado"
             inputMode="decimal"
-            className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="10,00"
             value={cdiAnnualPercent}
             onFocus={() => setFocusedField('cdiAnnualPercent')}
@@ -253,33 +256,48 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
         {renderError('cdiAnnualPercent')}
       </label>
 
-      <fieldset className="flex flex-col gap-2 border-t border-gray-100 pt-3">
-        <legend className="text-sm font-semibold text-gray-700">Tipo de rentabilidade</legend>
-        <div className="flex flex-col gap-2 text-sm text-gray-700">
-          <label className="flex items-center gap-2 cursor-pointer">
+      <fieldset className="flex flex-col gap-2 border-t border-slate-100 pt-4">
+        <legend className="text-sm font-semibold text-slate-800">Tipo de rentabilidade</legend>
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1 text-sm text-slate-700">
+          <label
+            className={`flex cursor-pointer items-center justify-center rounded-md px-2 py-2 text-center font-medium transition-colors ${
+              value.rateType === 'cdi_percent' ? 'bg-white text-slate-950 shadow-sm' : 'hover:bg-white/70'
+            }`}
+          >
             <input
               type="radio"
               name="rateType"
+              className="sr-only"
               checked={value.rateType === 'cdi_percent'}
               onChange={() => update({ rateType: 'cdi_percent' as RateType })}
             />
             <span>% do CDI</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label
+            className={`flex cursor-pointer items-center justify-center rounded-md px-2 py-2 text-center font-medium transition-colors ${
+              value.rateType === 'fixed' ? 'bg-white text-slate-950 shadow-sm' : 'hover:bg-white/70'
+            }`}
+          >
             <input
               type="radio"
               aria-label="Prefixado"
               name="rateType"
+              className="sr-only"
               checked={value.rateType === 'fixed'}
               onChange={() => update({ rateType: 'fixed' as RateType })}
             />
             <span>Prefixado</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label
+            className={`flex cursor-pointer items-center justify-center rounded-md px-2 py-2 text-center font-medium transition-colors ${
+              value.rateType === 'ipca_plus' ? 'bg-white text-slate-950 shadow-sm' : 'hover:bg-white/70'
+            }`}
+          >
             <input
               type="radio"
               aria-label="IPCA + taxa"
               name="rateType"
+              className="sr-only"
               checked={value.rateType === 'ipca_plus'}
               onChange={() => update({ rateType: 'ipca_plus' as RateType })}
             />
@@ -290,9 +308,9 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
 
       {value.rateType === 'cdi_percent' ? (
         <>
-          <div className="pt-1 border-t border-gray-100">
-            <p className="text-sm font-semibold text-gray-700">Premissas de comparacao</p>
-            <p className="text-xs text-gray-500 mt-1">
+          <div className="pt-1 border-t border-slate-100">
+            <p className="text-sm font-semibold text-slate-800">Premissas de comparacao</p>
+            <p className="text-xs text-slate-500 mt-1">
               Ajuste os percentuais usados como referencia para CDB e LCI/LCA.
             </p>
           </div>
@@ -304,7 +322,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 type="text"
                 aria-label="% do CDI"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="100"
                 value={cdiPercent}
                 onFocus={() => setFocusedField('cdiPercent')}
@@ -331,7 +349,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 type="text"
                 aria-label="% do CDI do CDB"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="100"
                 value={cdbPercent}
                 onFocus={() => setFocusedField('cdbPercent')}
@@ -357,7 +375,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 type="text"
                 aria-label="% do CDI da LCI/LCA"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="85"
                 value={lciLcaPercent}
                 onFocus={() => setFocusedField('lciLcaPercent')}
@@ -386,7 +404,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
               type="text"
               aria-label="Taxa prefixada anual"
               inputMode="decimal"
-              className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="12,00"
               value={fixedAnnualPercent}
               onFocus={() => setFocusedField('fixedAnnualPercent')}
@@ -416,7 +434,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 type="text"
                 aria-label="IPCA anual"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="4,50"
                 value={ipcaAnnualPercent}
                 onFocus={() => setFocusedField('ipcaAnnualPercent')}
@@ -443,7 +461,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 type="text"
                 aria-label="Taxa real acima do IPCA"
                 inputMode="decimal"
-                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="6,00"
                 value={ipcaSpreadAnnualPercent}
                 onFocus={() => setFocusedField('ipcaSpreadAnnualPercent')}
@@ -465,16 +483,16 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
         </>
       ) : null}
 
-      <fieldset className="flex flex-col gap-2 border-t border-gray-100 pt-3">
-        <legend className="text-sm font-semibold text-gray-700">Imposto de renda</legend>
-        <label className="flex items-center gap-2 cursor-pointer">
+      <fieldset className="flex flex-col gap-2 border-t border-slate-100 pt-4">
+        <legend className="text-sm font-semibold text-slate-800">Imposto de renda</legend>
+        <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 cursor-pointer">
+          <span className="text-sm font-medium text-slate-700">Aplicacao isenta de IR</span>
           <input
             type="checkbox"
-            className="w-4 h-4 accent-blue-600"
+            className="w-4 h-4 accent-emerald-600"
             checked={value.isTaxExempt}
             onChange={(event) => update({ isTaxExempt: event.target.checked })}
           />
-          <span className="text-sm font-medium text-gray-600">Aplicacao isenta de IR</span>
         </label>
         <p className="text-xs text-gray-500">Desmarcado: aplica tabela regressiva de IR no resgate final.</p>
       </fieldset>

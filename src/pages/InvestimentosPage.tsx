@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ComparisonChart from '../calculators/investimentos/ComparisonChart'
 import ComparisonTable from '../calculators/investimentos/ComparisonTable'
 import InputForm from '../calculators/investimentos/InputForm'
@@ -24,6 +25,30 @@ const DEFAULT_INPUTS: InvestimentosInputs = {
   ipcaSpreadAnnualPercent: null,
   isTaxExempt: false,
 }
+
+const TOOL_CARDS = [
+  {
+    to: '/investimentos',
+    kicker: 'Agora',
+    title: 'Investimentos',
+    description: 'Compare renda fixa, imposto e alternativas atreladas ao CDI.',
+    active: true,
+  },
+  {
+    to: '/aposentadoria',
+    kicker: 'Aberta',
+    title: 'Aposentadoria',
+    description: 'Projete quanto precisa investir para manter sua renda futura.',
+    active: false,
+  },
+  {
+    to: '/salario',
+    kicker: 'Aberta',
+    title: 'Salario liquido',
+    description: 'Calcule o valor aproximado que cai na conta apos descontos.',
+    active: false,
+  },
+]
 
 export default function InvestimentosPage() {
   const [inputs, setInputs] = useState<InvestimentosInputs>(DEFAULT_INPUTS)
@@ -74,20 +99,87 @@ export default function InvestimentosPage() {
   }, [])
 
   return (
-    <div>
-      <div className="bg-gradient-to-r from-blue-900 to-indigo-700 px-6 py-5">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold text-white tracking-tight">Calculadora de Investimentos</h1>
-          <p className="text-sm text-blue-200 mt-2 max-w-3xl leading-relaxed">
-            Compare seu investimento com poupanca, CDB e LCI/LCA usando percentuais do CDI editaveis.
-            O CDI medio projetado pode ser preenchido automaticamente e continuar editavel.
-          </p>
-        </div>
-      </div>
+    <div className="bg-[#f6f7f9]">
+      <section className="border-b border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-8 lg:py-10">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                Ferramentas abertas
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                Calculadora de Investimentos
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                Simule seu investimento e compare com poupanca, CDB e LCI/LCA em uma leitura simples de bruto,
+                imposto e valor liquido no resgate.
+              </p>
+            </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-96 shrink-0">
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-medium text-slate-500">Acesso</p>
+                <p className="mt-1 font-semibold text-slate-900">Aberto</p>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-medium text-slate-500">Base</p>
+                <p className="mt-1 font-semibold text-slate-900">CDI</p>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-medium text-slate-500">Leitura</p>
+                <p className="mt-1 font-semibold text-slate-900">Liquida</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="tools-title" className="max-w-7xl mx-auto px-4 py-6">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 id="tools-title" className="text-base font-semibold text-slate-950">
+              Ferramentas financeiras
+            </h2>
+            <p className="text-sm text-slate-500">Calculadoras abertas para apoiar decisoes do dia a dia.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          {TOOL_CARDS.map((tool) => (
+            <Link
+              key={tool.to}
+              to={tool.to}
+              className={`rounded-lg border bg-white p-4 transition-colors hover:border-slate-300 ${
+                tool.active ? 'border-slate-900 shadow-sm' : 'border-slate-200'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{tool.kicker}</span>
+                {tool.active ? (
+                  <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                    Em uso
+                  </span>
+                ) : null}
+              </div>
+              <h3 className="mt-3 text-sm font-semibold text-slate-950">{tool.title}</h3>
+              <p className="mt-1 text-sm leading-5 text-slate-500">{tool.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="simulator-title" className="max-w-7xl mx-auto px-4 pb-8">
+        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 id="simulator-title" className="text-base font-semibold text-slate-950">
+              Simulador
+            </h2>
+            <p className="text-sm text-slate-500">Preencha as premissas e acompanhe o comparativo ao lado.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[390px_minmax(0,1fr)] lg:items-start">
+          <div className="lg:sticky lg:top-28">
             <InputForm
               value={inputs}
               errors={errors}
@@ -97,30 +189,29 @@ export default function InvestimentosPage() {
             />
           </div>
 
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-4">
             {result ? (
               <>
                 <ResultCards result={result} />
                 <ComparisonChart simulation={result.simulation} rows={result.rows} />
                 <ComparisonTable rows={result.rows} />
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs text-slate-500 leading-relaxed">
+                <div className="rounded-lg border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-500">
                   Valores estimados. A simulacao nao considera marcacao a mercado, spread, taxas, carencia,
                   liquidez, risco de credito, cobertura, limites ou elegibilidade do FGC, mudancas futuras de
                   tributacao, come-cotas ou IOF.
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-center h-64 rounded-xl border-2 border-dashed border-slate-200 bg-white text-slate-400">
-                <div className="text-center px-4">
-                  <div className="text-4xl mb-3">R$</div>
-                  <p className="text-base font-semibold text-slate-500">Preencha os dados do investimento</p>
-                  <p className="text-sm mt-1">Os resultados aparecerao aqui</p>
+              <div className="flex min-h-[24rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-400">
+                <div className="px-4 text-center">
+                  <p className="text-sm font-semibold text-slate-600">Preencha os dados do investimento</p>
+                  <p className="mt-1 text-sm text-slate-500">Os resultados aparecerao aqui.</p>
                 </div>
               </div>
             )}
           </div>
         </div>
-      </main>
+      </section>
     </div>
   )
 }

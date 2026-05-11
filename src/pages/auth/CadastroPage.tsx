@@ -87,7 +87,7 @@ export function CadastroPage() {
   return (
     <div className="max-w-xl mx-auto p-6">
       <h1 ref={h1Ref} tabIndex={-1} className="text-2xl font-semibold mb-6">
-        Cadastro — Consultoria CFP
+        Cadastro - Consultoria
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-1">
         {/* Honeypot off-screen */}

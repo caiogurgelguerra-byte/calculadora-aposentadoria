@@ -8,8 +8,8 @@ export function PrivacidadePage() {
 
       <h2 className="text-lg font-semibold mt-6 mb-2">1. Controlador</h2>
       <p className="text-gray-700 mb-4">
-        Caio Gurgel Guerra (CPF fornecido a autoridade competente sob solicitação formal), planejador
-        financeiro CFP®, é o controlador dos dados pessoais tratados pela plataforma{' '}
+        Caio Gurgel Guerra (CPF fornecido a autoridade competente sob solicitação formal) é o
+        controlador dos dados pessoais tratados pela plataforma{' '}
         <code>meumapafinanceiro.ia.br</code>. Quando aplicável, o regime societário será atualizado
         neste item (PF autônoma, ME ou LTDA) com CNPJ correspondente.
       </p>
@@ -138,7 +138,7 @@ export function PrivacidadePage() {
       <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1">
         <li><strong>Tributário/Fiscal:</strong> prazos do Decreto 70.235/72 e legislação correlata (até 5 anos a partir do exercício seguinte).</li>
         <li><strong>Cobranças/relações de consumo:</strong> prazo prescricional do Código Civil (Art. 206 §5º I — 5 anos para dívidas líquidas) e CDC.</li>
-        <li><strong>Obrigações regulatórias profissionais:</strong> Resolução CVM 178/2023 (quando aplicável ao regime de atuação) e orientações Planejar/Anbima enquanto vinculantes por contrato com a entidade certificadora.</li>
+        <li><strong>Obrigações profissionais e regulatórias:</strong> regras legais aplicáveis ao regime de atuação vigente, quando houver.</li>
       </ul>
       <p className="text-gray-700 mb-4">
         <strong>A solicitação de exclusão pelo titular (item 6) prevalece sobre este prazo de
@@ -170,7 +170,7 @@ export function PrivacidadePage() {
       <h2 className="text-lg font-semibold mt-6 mb-2">11. Limites do serviço</h2>
       <p className="text-gray-700 mb-4">
         A consultoria via Seu Mapa Financeiro é <strong>planejamento financeiro pessoal</strong>{' '}
-        prestado por profissional certificado CFP®.{' '}
+        prestado por Caio Gurgel Guerra.{' '}
         <strong>Não constitui recomendação de produto de investimento (CVM 178/2023)</strong> e não
         substitui assessoria de valores mobiliários. Detalhes em <a href="/termos" className="text-blue-600 underline">Termos de Uso</a>.
       </p>

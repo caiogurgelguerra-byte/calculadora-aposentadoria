@@ -14,9 +14,8 @@ export function AguardandoPage() {
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Você está na fila!</h1>
       <p className="mb-4">
-        Recebemos seu cadastro. Para garantir um atendimento de qualidade, eu (Caio Gurgel,
-        planejador certificado pelo CFP) reviso pessoalmente cada cliente antes de liberar
-        o onboarding.
+        Recebemos seu cadastro. Para garantir um atendimento de qualidade, eu (Caio Gurgel)
+        reviso pessoalmente cada cliente antes de liberar o onboarding.
       </p>
       <p className="mb-4">
         Vou revisar nos próximos dias úteis e te aviso por email quando o acesso estiver liberado.

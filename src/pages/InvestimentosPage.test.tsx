@@ -127,4 +127,17 @@ describe('route and home integration', () => {
       await screen.findByRole('heading', { name: /calculadora de investimentos/i })
     ).toBeInTheDocument()
   })
+
+  it('app route shows public tools with client-only login and WhatsApp contact', async () => {
+    window.history.pushState({}, '', '/investimentos')
+    render(<App />)
+
+    expect(await screen.findByRole('link', { name: 'Falar no WhatsApp' })).toHaveAttribute(
+      'href',
+      'https://wa.me/5584996654671'
+    )
+    expect(screen.getByRole('link', { name: 'Area do cliente' })).toHaveAttribute('href', '/login')
+    expect(screen.getByText('Ferramentas abertas')).toBeInTheDocument()
+    expect(screen.queryByText(/CFP/i)).not.toBeInTheDocument()
+  })
 })

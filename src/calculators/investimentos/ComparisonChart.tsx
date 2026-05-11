@@ -30,13 +30,13 @@ export default function ComparisonChart({ simulation, rows }: Props) {
 
   return (
     <section
-      className="bg-white rounded-xl border border-gray-100 shadow-sm p-5"
+      className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
       aria-labelledby="investment-chart-title"
     >
-      <h3 id="investment-chart-title" className="text-sm font-semibold text-gray-700">
+      <h3 id="investment-chart-title" className="text-sm font-semibold text-slate-900">
         Evolucao bruta ao longo do prazo
       </h3>
-      <p className="text-xs text-gray-500 mt-1">
+      <p className="mt-1 text-xs text-slate-500">
         O grafico mostra a tendencia bruta. Para decidir, compare o valor liquido na tabela.
       </p>
       <p className="sr-only" data-testid="chart-summary">
@@ -59,7 +59,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
               type="monotone"
               dataKey="customGross"
               name="Seu investimento"
-              stroke="#2563eb"
+              stroke="#0f172a"
               strokeWidth={2.5}
               dot={false}
             />
@@ -83,7 +83,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
               type="monotone"
               dataKey="lciLca85CdiGross"
               name={lciLcaLabel}
-              stroke="#f97316"
+              stroke="#0284c7"
               strokeWidth={2}
               dot={false}
             />
