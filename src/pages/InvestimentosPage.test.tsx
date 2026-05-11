@@ -88,6 +88,7 @@ describe('InvestimentosPage', () => {
   it('shows editable benchmark inputs for CDB and LCI LCA', () => {
     renderPage()
 
+    expect(screen.getByText('Premissas de comparacao')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '% do CDI do CDB' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '% do CDI da LCI/LCA' })).toBeInTheDocument()
   })

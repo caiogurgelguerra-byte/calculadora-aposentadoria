@@ -218,6 +218,13 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
 
       {value.rateType === 'cdi_percent' ? (
         <>
+          <div className="pt-1 border-t border-gray-100">
+            <p className="text-sm font-semibold text-gray-700">Premissas de comparacao</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Ajuste os percentuais usados como referencia para CDB e LCI/LCA.
+            </p>
+          </div>
+
           <label className="flex flex-col gap-1">
             <span className="text-sm font-medium text-gray-600">Seu investimento (% do CDI)</span>
             <div className="relative">
