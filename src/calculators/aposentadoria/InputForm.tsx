@@ -5,13 +5,25 @@ interface Props {
   onChange: (inputs: UserInputs) => void
 }
 
-function parseMoney(value: string): number {
-  return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0
+function parseMoneyDigits(value: string): number {
+  const digits = extractMoneyDigits(value)
+  return digits ? Number(digits) : 0
 }
 
-function formatMoney(value: number): string {
-  if (value === 0) return ''
-  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+function extractMoneyDigits(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (!digits) return ''
+  if (value.includes(',')) {
+    return digits.length > 2 ? digits.slice(0, -2).replace(/^0+/, '') || '0' : ''
+  }
+  return digits.replace(/^0+/, '') || '0'
+}
+
+function formatMoneyDigits(value: string): string {
+  if (!value) return ''
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return ''
+  return numeric.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function calcRealReturn(bruto: number, ir: number, inflacao: number): number {
@@ -73,15 +85,16 @@ export default function InputForm({ onChange }: Props) {
           <span className="text-gray-400 mr-1 text-sm">R$</span>
           <input
             type="text"
-            inputMode="decimal"
+            inputMode="numeric"
             className="flex-1 outline-none text-sm"
             placeholder="10.000,00"
             value={rendaMensalStr}
             onChange={e => {
-              setRendaMensalStr(e.target.value)
-              update('rendaMensal', parseMoney(e.target.value))
+              const next = formatMoneyDigits(extractMoneyDigits(e.target.value))
+              setRendaMensalStr(next)
+              update('rendaMensal', parseMoneyDigits(next))
             }}
-            onBlur={() => setRendaMensalStr(formatMoney(inputs.rendaMensal))}
+            onBlur={() => setRendaMensalStr(inputs.rendaMensal > 0 ? formatMoneyDigits(String(inputs.rendaMensal)) : '')}
           />
         </div>
       </label>
@@ -117,15 +130,16 @@ export default function InputForm({ onChange }: Props) {
           <span className="text-gray-400 mr-1 text-sm">R$</span>
           <input
             type="text"
-            inputMode="decimal"
+            inputMode="numeric"
             className="flex-1 outline-none text-sm"
             placeholder="0,00"
             value={patrimonioStr}
             onChange={e => {
-              setPatrimonioStr(e.target.value)
-              update('patrimonioAtual', parseMoney(e.target.value))
+              const next = formatMoneyDigits(extractMoneyDigits(e.target.value))
+              setPatrimonioStr(next)
+              update('patrimonioAtual', parseMoneyDigits(next))
             }}
-            onBlur={() => setPatrimonioStr(formatMoney(inputs.patrimonioAtual))}
+            onBlur={() => setPatrimonioStr(inputs.patrimonioAtual > 0 ? formatMoneyDigits(String(inputs.patrimonioAtual)) : '')}
           />
         </div>
       </label>

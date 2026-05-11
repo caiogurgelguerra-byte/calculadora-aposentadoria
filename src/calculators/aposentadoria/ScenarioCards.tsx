@@ -62,10 +62,10 @@ function Card({ id, nome, capitalNecessario, aporteMensal, metaJaAtingida, isUnd
   return (
     <button
       onClick={onSelect}
-      className={`flex-1 rounded-xl border-2 p-4 text-left transition-all duration-200 cursor-pointer
+      className={`w-full rounded-xl border-2 p-4 text-left transition-all duration-200 cursor-pointer min-h-36
         ${selected
-          ? `${s.border} ${s.selectedBg} shadow-lg ${s.shadow} scale-[1.02]`
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md hover:scale-[1.01]'
+          ? `${s.border} ${s.selectedBg} shadow-lg ${s.shadow} md:scale-[1.02]`
+          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md md:hover:scale-[1.01]'
         }`}
     >
       <div className="flex items-start justify-between mb-3">
@@ -104,7 +104,7 @@ export default function ScenarioCards({ results, selectedScenario, onSelectScena
   const cenarioAUndefined = results.cenarioA.capitalNecessario === 0 && !results.cenarioA.metaJaAtingida && results.simulacao[0]?.cenarioA === null
 
   return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
       <Card id="A" nome={results.cenarioA.nome} capitalNecessario={results.cenarioA.capitalNecessario}
         aporteMensal={results.cenarioA.aporteMensal} metaJaAtingida={results.cenarioA.metaJaAtingida}
         isUndefined={cenarioAUndefined} selected={selectedScenario === 'A'} onSelect={() => onSelectScenario('A')} />
