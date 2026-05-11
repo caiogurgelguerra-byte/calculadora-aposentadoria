@@ -277,6 +277,15 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
 
   if (inputs.rateType === 'cdi_percent') {
     validateRateField(errors, 'cdiPercent', inputs.cdiPercent, 'Informe o percentual do CDI.', -0.0000001, 1000)
+    validateRateField(errors, 'cdbPercent', inputs.cdbPercent, 'Informe o percentual do CDI para o CDB.', -0.0000001, 1000)
+    validateRateField(
+      errors,
+      'lciLcaPercent',
+      inputs.lciLcaPercent,
+      'Informe o percentual do CDI para a LCI/LCA.',
+      -0.0000001,
+      1000
+    )
   }
 
   if (inputs.rateType === 'fixed') {
@@ -309,6 +318,8 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
       ipcaAnnualRate: (inputs.ipcaAnnualPercent ?? 0) / 100,
       rateType: inputs.rateType,
       cdiFactor: (inputs.cdiPercent ?? 0) / 100,
+      cdbFactor: (inputs.cdbPercent ?? 0) / 100,
+      lciLcaFactor: (inputs.lciLcaPercent ?? 0) / 100,
       fixedAnnualRate: (inputs.fixedAnnualPercent ?? 0) / 100,
       ipcaSpreadAnnualRate: (inputs.ipcaSpreadAnnualPercent ?? 0) / 100,
       isTaxExempt: inputs.isTaxExempt,
@@ -327,8 +338,9 @@ export function calculateInvestimentos(inputs: InvestimentosInputs, startDate = 
   const normalized = normalizedState.normalized
   const customAnnualRate = getCustomAnnualRate(normalized)
   const customMonthlyRate = annualToMonthlyRate(customAnnualRate)
-  const cdbMonthlyRate = annualToMonthlyRate(normalized.cdiAnnualRate)
-  const lciMonthlyRate = cdbMonthlyRate * 0.85
+  const cdiMonthlyRate = annualToMonthlyRate(normalized.cdiAnnualRate)
+  const cdbMonthlyRate = cdiMonthlyRate * normalized.cdbFactor
+  const lciMonthlyRate = cdiMonthlyRate * normalized.lciLcaFactor
   const savingsMonthlyRate = calculateSavingsMonthlyRate(normalized.cdiAnnualRate)
 
   const products: ProductDefinition[] = [
@@ -346,13 +358,13 @@ export function calculateInvestimentos(inputs: InvestimentosInputs, startDate = 
     },
     {
       id: 'cdb_100_cdi',
-      label: 'CDB (100% do CDI)',
+      label: `CDB (${roundCurrency(normalized.cdbFactor * 100)}% do CDI)`,
       monthlyRate: cdbMonthlyRate,
       taxable: true,
     },
     {
       id: 'lci_lca_85_cdi',
-      label: 'LCI/LCA (85% do CDI)',
+      label: `LCI/LCA (${roundCurrency(normalized.lciLcaFactor * 100)}% do CDI)`,
       monthlyRate: lciMonthlyRate,
       taxable: false,
     },

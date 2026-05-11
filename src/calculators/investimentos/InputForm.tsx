@@ -28,6 +28,8 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
   const [cdiAnnualPercent, setCdiAnnualPercent] = useState(toPercentInputValue(value.cdiAnnualPercent))
   const [ipcaAnnualPercent, setIpcaAnnualPercent] = useState(toPercentInputValue(value.ipcaAnnualPercent))
   const [cdiPercent, setCdiPercent] = useState(toPercentInputValue(value.cdiPercent))
+  const [cdbPercent, setCdbPercent] = useState(toPercentInputValue(value.cdbPercent))
+  const [lciLcaPercent, setLciLcaPercent] = useState(toPercentInputValue(value.lciLcaPercent))
   const [fixedAnnualPercent, setFixedAnnualPercent] = useState(toPercentInputValue(value.fixedAnnualPercent))
   const [ipcaSpreadAnnualPercent, setIpcaSpreadAnnualPercent] = useState(toPercentInputValue(value.ipcaSpreadAnnualPercent))
   const [termValue, setTermValue] = useState('12')
@@ -215,28 +217,74 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
       </fieldset>
 
       {value.rateType === 'cdi_percent' ? (
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-gray-600">% do CDI</span>
-          <div className="relative">
-            <input
-              type="text"
-              aria-label="% do CDI"
-              inputMode="decimal"
-              className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="100"
-              value={cdiPercent}
-              onChange={(event) => {
-                setCdiPercent(event.target.value)
-                update({ cdiPercent: parseBrazilianPercent(event.target.value) })
-              }}
-              onBlur={() => setCdiPercent(toPercentInputValue(value.cdiPercent))}
-              {...inputErrorProps('cdiPercent')}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
-          </div>
-          <p className="text-xs text-gray-500">Use 100 para 100% do CDI, 85 para 85%, 110 para 110%.</p>
-          {renderError('cdiPercent')}
-        </label>
+        <>
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-600">Seu investimento (% do CDI)</span>
+            <div className="relative">
+              <input
+                type="text"
+                aria-label="% do CDI"
+                inputMode="decimal"
+                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="100"
+                value={cdiPercent}
+                onChange={(event) => {
+                  setCdiPercent(event.target.value)
+                  update({ cdiPercent: parseBrazilianPercent(event.target.value) })
+                }}
+                onBlur={() => setCdiPercent(toPercentInputValue(value.cdiPercent))}
+                {...inputErrorProps('cdiPercent')}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+            </div>
+            <p className="text-xs text-gray-500">Use 100 para 100% do CDI, 85 para 85%, 110 para 110%.</p>
+            {renderError('cdiPercent')}
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-600">CDB (% do CDI)</span>
+            <div className="relative">
+              <input
+                type="text"
+                aria-label="% do CDI do CDB"
+                inputMode="decimal"
+                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="100"
+                value={cdbPercent}
+                onChange={(event) => {
+                  setCdbPercent(event.target.value)
+                  update({ cdbPercent: parseBrazilianPercent(event.target.value) })
+                }}
+                onBlur={() => setCdbPercent(toPercentInputValue(value.cdbPercent))}
+                {...inputErrorProps('cdbPercent')}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+            </div>
+            {renderError('cdbPercent')}
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-600">LCI/LCA (% do CDI)</span>
+            <div className="relative">
+              <input
+                type="text"
+                aria-label="% do CDI da LCI/LCA"
+                inputMode="decimal"
+                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="85"
+                value={lciLcaPercent}
+                onChange={(event) => {
+                  setLciLcaPercent(event.target.value)
+                  update({ lciLcaPercent: parseBrazilianPercent(event.target.value) })
+                }}
+                onBlur={() => setLciLcaPercent(toPercentInputValue(value.lciLcaPercent))}
+                {...inputErrorProps('lciLcaPercent')}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+            </div>
+            {renderError('lciLcaPercent')}
+          </label>
+        </>
       ) : null}
 
       {value.rateType === 'fixed' ? (

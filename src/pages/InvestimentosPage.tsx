@@ -18,6 +18,8 @@ const DEFAULT_INPUTS: InvestimentosInputs = {
   ipcaAnnualPercent: null,
   rateType: 'cdi_percent',
   cdiPercent: 100,
+  cdbPercent: 100,
+  lciLcaPercent: 85,
   fixedAnnualPercent: null,
   ipcaSpreadAnnualPercent: null,
   isTaxExempt: false,
@@ -68,7 +70,7 @@ export default function InvestimentosPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-white tracking-tight">Calculadora de Investimentos</h1>
           <p className="text-sm text-blue-200 mt-2 max-w-3xl leading-relaxed">
-            Compare seu investimento com poupanca, CDB (100% do CDI) e LCI/LCA (85% do CDI).
+            Compare seu investimento com poupanca, CDB e LCI/LCA usando percentuais do CDI editaveis.
             O CDI medio projetado pode ser preenchido automaticamente e continuar editavel.
           </p>
         </div>

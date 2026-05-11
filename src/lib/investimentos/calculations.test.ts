@@ -24,6 +24,8 @@ function baseInputs(patch: Partial<InvestimentosInputs> = {}): InvestimentosInpu
     ipcaAnnualPercent: 4,
     rateType: 'cdi_percent',
     cdiPercent: 100,
+    cdbPercent: 100,
+    lciLcaPercent: 85,
     fixedAnnualPercent: null,
     ipcaSpreadAnnualPercent: null,
     isTaxExempt: false,
@@ -121,6 +123,14 @@ describe('normalizeInputs', () => {
     expect(cdiPercentTooHigh.normalized).toBeNull()
     expect(cdiPercentTooHigh.errors.cdiPercent).toBe('Informe o percentual do CDI.')
 
+    const cdbPercentMissing = normalizeInputs(baseInputs({ rateType: 'cdi_percent', cdbPercent: null }), START_DATE)
+    expect(cdbPercentMissing.normalized).toBeNull()
+    expect(cdbPercentMissing.errors.cdbPercent).toBe('Informe o percentual do CDI para o CDB.')
+
+    const lciLcaPercentMissing = normalizeInputs(baseInputs({ rateType: 'cdi_percent', lciLcaPercent: null }), START_DATE)
+    expect(lciLcaPercentMissing.normalized).toBeNull()
+    expect(lciLcaPercentMissing.errors.lciLcaPercent).toBe('Informe o percentual do CDI para a LCI/LCA.')
+
     const fixedTooLow = normalizeInputs(
       baseInputs({ rateType: 'fixed', fixedAnnualPercent: -100, cdiPercent: null }),
       START_DATE
@@ -191,6 +201,43 @@ describe('calculateInvestimentos', () => {
     expect(cdb.tax).toBeGreaterThan(0)
     expect(lci.tax).toBe(0)
     expect(savings.tax).toBe(0)
+  })
+
+  it('keeps LCI LCA gross result below or equal to CDB 100 percent CDI gross result', () => {
+    const state = calculateInvestimentos(
+      baseInputs({
+        initialAmount: 10000,
+        termValue: 24,
+        cdiAnnualPercent: 14.5,
+      }),
+      START_DATE
+    )
+
+    const cdb = state.result!.rows.find(row => row.id === 'cdb_100_cdi')!
+    const lci = state.result!.rows.find(row => row.id === 'lci_lca_85_cdi')!
+
+    expect(cdb.grossFinalValue).toBeGreaterThanOrEqual(lci.grossFinalValue)
+    expect(cdb.grossYield).toBeGreaterThanOrEqual(lci.grossYield)
+  })
+
+  it('matches gross result when CDB and LCI LCA use the same CDI percentage', () => {
+    const state = calculateInvestimentos(
+      baseInputs({
+        initialAmount: 10000,
+        termValue: 24,
+        cdiAnnualPercent: 14.5,
+        cdbPercent: 100,
+        lciLcaPercent: 100,
+      }),
+      START_DATE
+    )
+
+    const cdb = state.result!.rows.find(row => row.id === 'cdb_100_cdi')!
+    const lci = state.result!.rows.find(row => row.id === 'lci_lca_85_cdi')!
+
+    expect(cdb.grossFinalValue).toBeCloseTo(lci.grossFinalValue, 2)
+    expect(cdb.grossYield).toBeCloseTo(lci.grossYield, 2)
+    expect(cdb.netFinalValue).toBeLessThan(lci.netFinalValue)
   })
 
   it('returns four fixed-order rows and month 0..term simulation points', () => {

@@ -14,6 +14,8 @@ function inputs(patch: Partial<InvestimentosInputs> = {}): InvestimentosInputs {
     ipcaAnnualPercent: 4,
     rateType: 'cdi_percent',
     cdiPercent: 100,
+    cdbPercent: 100,
+    lciLcaPercent: 85,
     fixedAnnualPercent: null,
     ipcaSpreadAnnualPercent: null,
     isTaxExempt: false,

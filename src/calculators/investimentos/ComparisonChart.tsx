@@ -24,6 +24,9 @@ function compactCurrency(value: number): string {
 
 export default function ComparisonChart({ simulation, rows }: Props) {
   const finalRows = rows.map((row) => `${row.label}: ${formatCurrency(row.netFinalValue)}`).join(' | ')
+  const savingsLabel = rows.find((row) => row.id === 'savings')?.label ?? 'Poupanca'
+  const cdbLabel = rows.find((row) => row.id === 'cdb_100_cdi')?.label ?? 'CDB'
+  const lciLcaLabel = rows.find((row) => row.id === 'lci_lca_85_cdi')?.label ?? 'LCI/LCA'
 
   return (
     <section
@@ -63,7 +66,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <Line
               type="monotone"
               dataKey="savingsGross"
-              name="Poupanca"
+              name={savingsLabel}
               stroke="#64748b"
               strokeWidth={2}
               dot={false}
@@ -71,7 +74,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <Line
               type="monotone"
               dataKey="cdb100CdiGross"
-              name="CDB (100% do CDI)"
+              name={cdbLabel}
               stroke="#059669"
               strokeWidth={2}
               dot={false}
@@ -79,7 +82,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <Line
               type="monotone"
               dataKey="lciLca85CdiGross"
-              name="LCI/LCA (85% do CDI)"
+              name={lciLcaLabel}
               stroke="#f97316"
               strokeWidth={2}
               dot={false}

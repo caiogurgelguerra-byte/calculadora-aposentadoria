@@ -9,6 +9,8 @@ export type InvestimentosField =
   | 'cdiAnnualPercent'
   | 'ipcaAnnualPercent'
   | 'cdiPercent'
+  | 'cdbPercent'
+  | 'lciLcaPercent'
   | 'fixedAnnualPercent'
   | 'ipcaSpreadAnnualPercent'
 
@@ -22,6 +24,8 @@ export interface InvestimentosInputs {
   ipcaAnnualPercent: number | null
   rateType: RateType
   cdiPercent: number | null
+  cdbPercent: number | null
+  lciLcaPercent: number | null
   fixedAnnualPercent: number | null
   ipcaSpreadAnnualPercent: number | null
   isTaxExempt: boolean
@@ -36,6 +40,8 @@ export interface NormalizedInvestimentosInputs {
   ipcaAnnualRate: number
   rateType: RateType
   cdiFactor: number
+  cdbFactor: number
+  lciLcaFactor: number
   fixedAnnualRate: number
   ipcaSpreadAnnualRate: number
   isTaxExempt: boolean

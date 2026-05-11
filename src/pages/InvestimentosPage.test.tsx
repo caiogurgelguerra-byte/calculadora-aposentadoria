@@ -33,6 +33,8 @@ describe('InvestimentosPage', () => {
     fireEvent.change(screen.getByLabelText('Valor inicial'), { target: { value: '10.000,00' } })
     fireEvent.change(screen.getByLabelText('CDI medio projetado'), { target: { value: '10,65' } })
     fireEvent.change(screen.getByRole('textbox', { name: '% do CDI' }), { target: { value: '100' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '% do CDI do CDB' }), { target: { value: '100' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '% do CDI da LCI/LCA' }), { target: { value: '85' } })
 
     expect(screen.getByText('Valor liquido no resgate')).toBeInTheDocument()
     expect(screen.getByText('Evolucao bruta ao longo do prazo')).toBeInTheDocument()
@@ -46,6 +48,7 @@ describe('InvestimentosPage', () => {
 
     fireEvent.change(screen.getByLabelText('Valor inicial'), { target: { value: '10.000,00' } })
     fireEvent.change(screen.getByLabelText('CDI medio projetado'), { target: { value: '10,65' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '% do CDI do CDB' }), { target: { value: '' } })
     fireEvent.click(screen.getByLabelText('Prefixado'))
 
     expect(screen.getByText('Informe a taxa prefixada.')).toBeInTheDocument()
@@ -80,6 +83,13 @@ describe('InvestimentosPage', () => {
 
     expect(screen.getByDisplayValue('1.000,00')).toBeInTheDocument()
     expect(await screen.findByDisplayValue('13')).toBeInTheDocument()
+  })
+
+  it('shows editable benchmark inputs for CDB and LCI LCA', () => {
+    renderPage()
+
+    expect(screen.getByRole('textbox', { name: '% do CDI do CDB' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '% do CDI da LCI/LCA' })).toBeInTheDocument()
   })
 })
 
