@@ -1,9 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../App'
 import Home from './Home'
 import InvestimentosPage from './InvestimentosPage'
+
+beforeEach(() => {
+  vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}))
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 function renderPage() {
   return render(
@@ -23,8 +31,7 @@ describe('InvestimentosPage', () => {
     renderPage()
 
     fireEvent.change(screen.getByLabelText('Valor inicial'), { target: { value: '10.000,00' } })
-    fireEvent.change(screen.getByLabelText('CDI anual'), { target: { value: '10,65' } })
-    fireEvent.change(screen.getByLabelText('IPCA anual'), { target: { value: '4,50' } })
+    fireEvent.change(screen.getByLabelText('CDI medio projetado'), { target: { value: '10,65' } })
     fireEvent.change(screen.getByRole('textbox', { name: '% do CDI' }), { target: { value: '100' } })
 
     expect(screen.getByText('Valor liquido no resgate')).toBeInTheDocument()
@@ -38,11 +45,40 @@ describe('InvestimentosPage', () => {
     renderPage()
 
     fireEvent.change(screen.getByLabelText('Valor inicial'), { target: { value: '10.000,00' } })
-    fireEvent.change(screen.getByLabelText('CDI anual'), { target: { value: '10,65' } })
-    fireEvent.change(screen.getByLabelText('IPCA anual'), { target: { value: '4,50' } })
+    fireEvent.change(screen.getByLabelText('CDI medio projetado'), { target: { value: '10,65' } })
     fireEvent.click(screen.getByLabelText('Prefixado'))
 
     expect(screen.getByText('Informe a taxa prefixada.')).toBeInTheDocument()
+  })
+
+  it('shows IPCA input only for IPCA plus simulations', () => {
+    renderPage()
+
+    expect(screen.queryByLabelText('IPCA anual')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('IPCA + taxa'))
+    expect(screen.getByLabelText('IPCA anual')).toBeInTheDocument()
+  })
+
+  it('formats money input on blur and loads projected CDI automatically', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        value: [
+          { Indicador: 'Selic', Data: '2026-05-09', DataReferencia: '2026', Mediana: 13 },
+          { Indicador: 'Selic', Data: '2026-05-09', DataReferencia: '2027', Mediana: 11 },
+          { Indicador: 'Selic', Data: '2026-05-09', DataReferencia: '2028', Mediana: 10 },
+        ],
+      }),
+    } as Response)
+
+    renderPage()
+
+    const amountInput = screen.getByLabelText('Valor inicial')
+    fireEvent.change(amountInput, { target: { value: '1000' } })
+    fireEvent.blur(amountInput)
+
+    expect(screen.getByDisplayValue('1.000,00')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('13')).toBeInTheDocument()
   })
 })
 

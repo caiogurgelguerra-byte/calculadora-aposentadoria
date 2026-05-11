@@ -1,9 +1,11 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import ComparisonChart from '../calculators/investimentos/ComparisonChart'
 import ComparisonTable from '../calculators/investimentos/ComparisonTable'
 import InputForm from '../calculators/investimentos/InputForm'
 import ResultCards from '../calculators/investimentos/ResultCards'
 import { useInvestimentosCalculations } from '../hooks/investimentos/useInvestimentosCalculations'
+import { getDefaultProjectedCdiPercent } from '../lib/investimentos/calculations'
+import { fetchLatestProjectedCdiByYear, getFallbackProjectedCdiByYear } from '../lib/investimentos/focus'
 import type { InvestimentosInputs } from '../lib/investimentos/types'
 
 const DEFAULT_INPUTS: InvestimentosInputs = {
@@ -12,7 +14,7 @@ const DEFAULT_INPUTS: InvestimentosInputs = {
   monthlyContribution: 0,
   termValue: 12,
   termUnit: 'months',
-  cdiAnnualPercent: null,
+  cdiAnnualPercent: 10,
   ipcaAnnualPercent: null,
   rateType: 'cdi_percent',
   cdiPercent: 100,
@@ -23,7 +25,38 @@ const DEFAULT_INPUTS: InvestimentosInputs = {
 
 export default function InvestimentosPage() {
   const [inputs, setInputs] = useState<InvestimentosInputs>(DEFAULT_INPUTS)
+  const [autoProjectedCdiEnabled, setAutoProjectedCdiEnabled] = useState(true)
+  const [projectedCdiByYear, setProjectedCdiByYear] = useState<Record<number, number>>(getFallbackProjectedCdiByYear())
   const { result, errors } = useInvestimentosCalculations(inputs)
+
+  const termMonths = useMemo(
+    () => (inputs.termUnit === 'years' ? inputs.termValue * 12 : inputs.termValue),
+    [inputs.termUnit, inputs.termValue]
+  )
+
+  useEffect(() => {
+    let active = true
+
+    fetchLatestProjectedCdiByYear()
+      .then((nextProjectedCdiByYear) => {
+        if (!active || Object.keys(nextProjectedCdiByYear).length === 0) return
+        setProjectedCdiByYear(nextProjectedCdiByYear)
+      })
+      .catch(() => {})
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!autoProjectedCdiEnabled) return
+
+    setInputs((current) => ({
+      ...current,
+      cdiAnnualPercent: getDefaultProjectedCdiPercent(termMonths, projectedCdiByYear),
+    }))
+  }, [autoProjectedCdiEnabled, projectedCdiByYear, termMonths])
 
   const handleChange = useCallback((next: InvestimentosInputs) => {
     setInputs(next)
@@ -35,8 +68,8 @@ export default function InvestimentosPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-white tracking-tight">Calculadora de Investimentos</h1>
           <p className="text-sm text-blue-200 mt-2 max-w-3xl leading-relaxed">
-            Compare seu investimento com poupanca simplificada, CDB 100% CDI e LCI/LCA hipotetica 85% CDI.
-            CDI e IPCA sao premissas informadas por voce.
+            Compare seu investimento com poupanca, CDB (100% do CDI) e LCI/LCA (85% do CDI).
+            O CDI medio projetado pode ser preenchido automaticamente e continuar editavel.
           </p>
         </div>
       </div>
@@ -44,7 +77,12 @@ export default function InvestimentosPage() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-96 shrink-0">
-            <InputForm value={inputs} errors={errors} onChange={handleChange} />
+            <InputForm
+              value={inputs}
+              errors={errors}
+              onChange={handleChange}
+              onCdiManualChange={() => setAutoProjectedCdiEnabled(false)}
+            />
           </div>
 
           <div className="flex-1 flex flex-col gap-4">

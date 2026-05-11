@@ -38,7 +38,7 @@ describe('useInvestimentosCalculations', () => {
 
     expect(result.current.result).toBeNull()
     expect(result.current.errors.initialAmount).toBe('Informe valor inicial ou aporte mensal.')
-    expect(result.current.errors.cdiAnnualPercent).toBe('Informe o CDI anual.')
+    expect(result.current.errors.cdiAnnualPercent).toBe('Informe o CDI medio projetado.')
   })
 
   it('uses injected start date as base date', () => {

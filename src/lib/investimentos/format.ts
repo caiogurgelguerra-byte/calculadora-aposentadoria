@@ -34,9 +34,25 @@ export function formatCurrency(value: number): string {
     .replace(/\u00a0/g, ' ')
 }
 
+export function formatMoneyInput(value: number): string {
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
 export function formatPercent(value: number): string {
   return `${value.toLocaleString('pt-BR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}%`
+}
+
+export function formatPercentInput(value: number | null): string {
+  if (value === null || Number.isNaN(value)) return ''
+
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })
 }

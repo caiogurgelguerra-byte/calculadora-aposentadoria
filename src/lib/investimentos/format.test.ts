@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatCurrency,
+  formatMoneyInput,
   formatPercent,
+  formatPercentInput,
   parseBrazilianMoney,
   parseBrazilianPercent,
 } from './format'
@@ -48,9 +50,22 @@ describe('formatCurrency', () => {
   })
 })
 
+describe('formatMoneyInput', () => {
+  it('formats plain money inputs with two decimals and thousand separator', () => {
+    expect(formatMoneyInput(1000)).toBe('1.000,00')
+  })
+})
+
 describe('formatPercent', () => {
   it('formats percentages with up to two decimals', () => {
     expect(formatPercent(10)).toBe('10%')
     expect(formatPercent(10.655)).toBe('10,66%')
+  })
+})
+
+describe('formatPercentInput', () => {
+  it('formats numeric percentage input without duplicating the symbol', () => {
+    expect(formatPercentInput(14.5)).toBe('14,5')
+    expect(formatPercentInput(null)).toBe('')
   })
 })

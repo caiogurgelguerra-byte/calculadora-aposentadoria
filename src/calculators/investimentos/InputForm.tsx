@@ -1,24 +1,66 @@
-import { useState } from 'react'
-import { parseBrazilianMoney, parseBrazilianPercent } from '../../lib/investimentos/format'
+import { useEffect, useState } from 'react'
+import {
+  formatMoneyInput,
+  formatPercentInput,
+  parseBrazilianMoney,
+  parseBrazilianPercent,
+} from '../../lib/investimentos/format'
 import type { InvestimentosErrors, InvestimentosInputs, RateType, TermUnit } from '../../lib/investimentos/types'
 
 interface Props {
   value: InvestimentosInputs
   errors: InvestimentosErrors
   onChange: (next: InvestimentosInputs) => void
+  onCdiManualChange: () => void
 }
 
-export default function InputForm({ value, errors, onChange }: Props) {
-  const [initialAmount, setInitialAmount] = useState('')
-  const [monthlyContribution, setMonthlyContribution] = useState('')
-  const [cdiAnnualPercent, setCdiAnnualPercent] = useState('')
-  const [ipcaAnnualPercent, setIpcaAnnualPercent] = useState('')
-  const [cdiPercent, setCdiPercent] = useState('100')
-  const [fixedAnnualPercent, setFixedAnnualPercent] = useState('')
-  const [ipcaSpreadAnnualPercent, setIpcaSpreadAnnualPercent] = useState('')
+function toMoneyInputValue(value: number): string {
+  return value > 0 ? formatMoneyInput(value) : ''
+}
+
+function toPercentInputValue(value: number | null): string {
+  return formatPercentInput(value)
+}
+
+export default function InputForm({ value, errors, onChange, onCdiManualChange }: Props) {
+  const [initialAmount, setInitialAmount] = useState(toMoneyInputValue(value.initialAmount))
+  const [monthlyContribution, setMonthlyContribution] = useState(toMoneyInputValue(value.monthlyContribution))
+  const [cdiAnnualPercent, setCdiAnnualPercent] = useState(toPercentInputValue(value.cdiAnnualPercent))
+  const [ipcaAnnualPercent, setIpcaAnnualPercent] = useState(toPercentInputValue(value.ipcaAnnualPercent))
+  const [cdiPercent, setCdiPercent] = useState(toPercentInputValue(value.cdiPercent))
+  const [fixedAnnualPercent, setFixedAnnualPercent] = useState(toPercentInputValue(value.fixedAnnualPercent))
+  const [ipcaSpreadAnnualPercent, setIpcaSpreadAnnualPercent] = useState(toPercentInputValue(value.ipcaSpreadAnnualPercent))
   const [termValue, setTermValue] = useState('12')
 
   const update = (patch: Partial<InvestimentosInputs>) => onChange({ ...value, ...patch })
+
+  useEffect(() => {
+    setInitialAmount(toMoneyInputValue(value.initialAmount))
+  }, [value.initialAmount])
+
+  useEffect(() => {
+    setMonthlyContribution(toMoneyInputValue(value.monthlyContribution))
+  }, [value.monthlyContribution])
+
+  useEffect(() => {
+    setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))
+  }, [value.cdiAnnualPercent])
+
+  useEffect(() => {
+    setIpcaAnnualPercent(toPercentInputValue(value.ipcaAnnualPercent))
+  }, [value.ipcaAnnualPercent])
+
+  useEffect(() => {
+    setCdiPercent(toPercentInputValue(value.cdiPercent))
+  }, [value.cdiPercent])
+
+  useEffect(() => {
+    setFixedAnnualPercent(toPercentInputValue(value.fixedAnnualPercent))
+  }, [value.fixedAnnualPercent])
+
+  useEffect(() => {
+    setIpcaSpreadAnnualPercent(toPercentInputValue(value.ipcaSpreadAnnualPercent))
+  }, [value.ipcaSpreadAnnualPercent])
 
   const inputErrorProps = (field: keyof InvestimentosErrors) => {
     const hasError = Boolean(errors[field])
@@ -41,19 +83,23 @@ export default function InputForm({ value, errors, onChange }: Props) {
 
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-gray-600">Valor inicial</span>
-        <input
-          type="text"
-          aria-label="Valor inicial"
-          inputMode="decimal"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="0,00"
-          value={initialAmount}
-          onChange={(event) => {
-            setInitialAmount(event.target.value)
-            update({ initialAmount: parseBrazilianMoney(event.target.value) })
-          }}
-          {...inputErrorProps('initialAmount')}
-        />
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">R$</span>
+          <input
+            type="text"
+            aria-label="Valor inicial"
+            inputMode="decimal"
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="0,00"
+            value={initialAmount}
+            onChange={(event) => {
+              setInitialAmount(event.target.value)
+              update({ initialAmount: parseBrazilianMoney(event.target.value) })
+            }}
+            onBlur={() => setInitialAmount(toMoneyInputValue(value.initialAmount))}
+            {...inputErrorProps('initialAmount')}
+          />
+        </div>
         <p className="text-xs text-gray-500">Valor aplicado hoje, antes de qualquer rendimento.</p>
         {renderError('initialAmount')}
       </label>
@@ -72,19 +118,23 @@ export default function InputForm({ value, errors, onChange }: Props) {
         {value.hasMonthlyContribution ? (
           <label className="flex flex-col gap-1">
             <span className="text-sm font-medium text-gray-600">Valor do aporte mensal</span>
-            <input
-              type="text"
-              aria-label="Valor do aporte mensal"
-              inputMode="decimal"
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0,00"
-              value={monthlyContribution}
-              onChange={(event) => {
-                setMonthlyContribution(event.target.value)
-                update({ monthlyContribution: parseBrazilianMoney(event.target.value) })
-              }}
-              {...inputErrorProps('monthlyContribution')}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">R$</span>
+              <input
+                type="text"
+                aria-label="Valor do aporte mensal"
+                inputMode="decimal"
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0,00"
+                value={monthlyContribution}
+                onChange={(event) => {
+                  setMonthlyContribution(event.target.value)
+                  update({ monthlyContribution: parseBrazilianMoney(event.target.value) })
+                }}
+                onBlur={() => setMonthlyContribution(toMoneyInputValue(value.monthlyContribution))}
+                {...inputErrorProps('monthlyContribution')}
+              />
+            </div>
             <p className="text-xs text-gray-500">Aporte considerado no fim de cada mes.</p>
             {renderError('monthlyContribution')}
           </label>
@@ -124,41 +174,27 @@ export default function InputForm({ value, errors, onChange }: Props) {
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-gray-600">CDI anual</span>
-        <input
-          type="text"
-          aria-label="CDI anual"
-          inputMode="decimal"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="10,65"
-          value={cdiAnnualPercent}
-          onChange={(event) => {
-            setCdiAnnualPercent(event.target.value)
-            update({ cdiAnnualPercent: parseBrazilianPercent(event.target.value) })
-          }}
-          {...inputErrorProps('cdiAnnualPercent')}
-        />
-        <p className="text-xs text-gray-500">Premissa editavel. Exemplo: 10,65 = 10,65% ao ano.</p>
+        <span className="text-sm font-medium text-gray-600">CDI medio projetado</span>
+        <div className="relative">
+          <input
+            type="text"
+            aria-label="CDI medio projetado"
+            inputMode="decimal"
+            className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="10,00"
+            value={cdiAnnualPercent}
+            onChange={(event) => {
+              setCdiAnnualPercent(event.target.value)
+              update({ cdiAnnualPercent: parseBrazilianPercent(event.target.value) })
+              onCdiManualChange()
+            }}
+            onBlur={() => setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))}
+            {...inputErrorProps('cdiAnnualPercent')}
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+        </div>
+        <p className="text-xs text-gray-500">Preenchido com base no Focus/BC quando disponivel. Voce pode ajustar.</p>
         {renderError('cdiAnnualPercent')}
-      </label>
-
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-gray-600">IPCA anual</span>
-        <input
-          type="text"
-          aria-label="IPCA anual"
-          inputMode="decimal"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="4,50"
-          value={ipcaAnnualPercent}
-          onChange={(event) => {
-            setIpcaAnnualPercent(event.target.value)
-            update({ ipcaAnnualPercent: parseBrazilianPercent(event.target.value) })
-          }}
-          {...inputErrorProps('ipcaAnnualPercent')}
-        />
-        <p className="text-xs text-gray-500">Premissa editavel de inflacao para a simulacao.</p>
-        {renderError('ipcaAnnualPercent')}
       </label>
 
       <fieldset className="flex flex-col gap-2 border-t border-gray-100 pt-3">
@@ -199,19 +235,23 @@ export default function InputForm({ value, errors, onChange }: Props) {
       {value.rateType === 'cdi_percent' ? (
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-gray-600">% do CDI</span>
-          <input
-            type="text"
-            aria-label="% do CDI"
-            inputMode="decimal"
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="100"
-            value={cdiPercent}
-            onChange={(event) => {
-              setCdiPercent(event.target.value)
-              update({ cdiPercent: parseBrazilianPercent(event.target.value) })
-            }}
-            {...inputErrorProps('cdiPercent')}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              aria-label="% do CDI"
+              inputMode="decimal"
+              className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="100"
+              value={cdiPercent}
+              onChange={(event) => {
+                setCdiPercent(event.target.value)
+                update({ cdiPercent: parseBrazilianPercent(event.target.value) })
+              }}
+              onBlur={() => setCdiPercent(toPercentInputValue(value.cdiPercent))}
+              {...inputErrorProps('cdiPercent')}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+          </div>
           <p className="text-xs text-gray-500">Use 100 para 100% do CDI, 85 para 85%, 110 para 110%.</p>
           {renderError('cdiPercent')}
         </label>
@@ -220,43 +260,76 @@ export default function InputForm({ value, errors, onChange }: Props) {
       {value.rateType === 'fixed' ? (
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-gray-600">Taxa prefixada anual</span>
-          <input
-            type="text"
-            aria-label="Taxa prefixada anual"
-            inputMode="decimal"
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="12,00"
-            value={fixedAnnualPercent}
-            onChange={(event) => {
-              setFixedAnnualPercent(event.target.value)
-              update({ fixedAnnualPercent: parseBrazilianPercent(event.target.value) })
-            }}
-            {...inputErrorProps('fixedAnnualPercent')}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              aria-label="Taxa prefixada anual"
+              inputMode="decimal"
+              className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="12,00"
+              value={fixedAnnualPercent}
+              onChange={(event) => {
+                setFixedAnnualPercent(event.target.value)
+                update({ fixedAnnualPercent: parseBrazilianPercent(event.target.value) })
+              }}
+              onBlur={() => setFixedAnnualPercent(toPercentInputValue(value.fixedAnnualPercent))}
+              {...inputErrorProps('fixedAnnualPercent')}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+          </div>
           <p className="text-xs text-gray-500">Taxa anual fixa da aplicacao. Exemplo: 12,00.</p>
           {renderError('fixedAnnualPercent')}
         </label>
       ) : null}
 
       {value.rateType === 'ipca_plus' ? (
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-gray-600">Taxa real acima do IPCA</span>
-          <input
-            type="text"
-            aria-label="Taxa real acima do IPCA"
-            inputMode="decimal"
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="6,00"
-            value={ipcaSpreadAnnualPercent}
-            onChange={(event) => {
-              setIpcaSpreadAnnualPercent(event.target.value)
-              update({ ipcaSpreadAnnualPercent: parseBrazilianPercent(event.target.value) })
-            }}
-            {...inputErrorProps('ipcaSpreadAnnualPercent')}
-          />
-          <p className="text-xs text-gray-500">Ganho real esperado alem da inflacao. Exemplo: 6,00.</p>
-          {renderError('ipcaSpreadAnnualPercent')}
-        </label>
+        <>
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-600">IPCA anual</span>
+            <div className="relative">
+              <input
+                type="text"
+                aria-label="IPCA anual"
+                inputMode="decimal"
+                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="4,50"
+                value={ipcaAnnualPercent}
+                onChange={(event) => {
+                  setIpcaAnnualPercent(event.target.value)
+                  update({ ipcaAnnualPercent: parseBrazilianPercent(event.target.value) })
+                }}
+                onBlur={() => setIpcaAnnualPercent(toPercentInputValue(value.ipcaAnnualPercent))}
+                {...inputErrorProps('ipcaAnnualPercent')}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+            </div>
+            <p className="text-xs text-gray-500">Usado apenas para simulacoes IPCA + taxa.</p>
+            {renderError('ipcaAnnualPercent')}
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-600">Taxa real acima do IPCA</span>
+            <div className="relative">
+              <input
+                type="text"
+                aria-label="Taxa real acima do IPCA"
+                inputMode="decimal"
+                className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="6,00"
+                value={ipcaSpreadAnnualPercent}
+                onChange={(event) => {
+                  setIpcaSpreadAnnualPercent(event.target.value)
+                  update({ ipcaSpreadAnnualPercent: parseBrazilianPercent(event.target.value) })
+                }}
+                onBlur={() => setIpcaSpreadAnnualPercent(toPercentInputValue(value.ipcaSpreadAnnualPercent))}
+                {...inputErrorProps('ipcaSpreadAnnualPercent')}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
+            </div>
+            <p className="text-xs text-gray-500">Ganho real esperado alem da inflacao. Exemplo: 6,00.</p>
+            {renderError('ipcaSpreadAnnualPercent')}
+          </label>
+        </>
       ) : null}
 
       <fieldset className="flex flex-col gap-2 border-t border-gray-100 pt-3">

@@ -6,6 +6,7 @@ import {
   calculateInvestimentos,
   calculateSavingsMonthlyRate,
   daysBetween,
+  getDefaultProjectedCdiPercent,
   getIrRateByDays,
   normalizeInputs,
 } from './calculations'
@@ -75,11 +76,25 @@ describe('IR table', () => {
 })
 
 describe('normalizeInputs', () => {
-  it('returns errors when CDI and IPCA are empty', () => {
-    const state = normalizeInputs(baseInputs({ cdiAnnualPercent: null, ipcaAnnualPercent: null }), START_DATE)
+  it('returns errors when CDI is empty and IPCA is empty for IPCA+ inputs', () => {
+    const state = normalizeInputs(
+      baseInputs({ cdiAnnualPercent: null, ipcaAnnualPercent: null, rateType: 'ipca_plus', cdiPercent: null, ipcaSpreadAnnualPercent: 6 }),
+      START_DATE
+    )
     expect(state.normalized).toBeNull()
-    expect(state.errors.cdiAnnualPercent).toBe('Informe o CDI anual.')
+    expect(state.errors.cdiAnnualPercent).toBe('Informe o CDI medio projetado.')
     expect(state.errors.ipcaAnnualPercent).toBe('Informe o IPCA anual.')
+  })
+
+  it('does not require IPCA for percent CDI or fixed inputs', () => {
+    const cdiPercentState = normalizeInputs(baseInputs({ ipcaAnnualPercent: null, rateType: 'cdi_percent' }), START_DATE)
+    expect(cdiPercentState.errors.ipcaAnnualPercent).toBeUndefined()
+
+    const fixedState = normalizeInputs(
+      baseInputs({ ipcaAnnualPercent: null, rateType: 'fixed', fixedAnnualPercent: 12, cdiPercent: null }),
+      START_DATE
+    )
+    expect(fixedState.errors.ipcaAnnualPercent).toBeUndefined()
   })
 
   it('normalizes human percent inputs to decimal rates', () => {
@@ -91,9 +106,12 @@ describe('normalizeInputs', () => {
   it('rejects CDI and IPCA values out of allowed range', () => {
     const tooHighCdi = normalizeInputs(baseInputs({ cdiAnnualPercent: 101 }), START_DATE)
     expect(tooHighCdi.normalized).toBeNull()
-    expect(tooHighCdi.errors.cdiAnnualPercent).toBe('Informe o CDI anual.')
+    expect(tooHighCdi.errors.cdiAnnualPercent).toBe('Informe o CDI medio projetado.')
 
-    const tooLowIpca = normalizeInputs(baseInputs({ ipcaAnnualPercent: -100 }), START_DATE)
+    const tooLowIpca = normalizeInputs(
+      baseInputs({ rateType: 'ipca_plus', cdiPercent: null, ipcaAnnualPercent: -100, ipcaSpreadAnnualPercent: 6 }),
+      START_DATE
+    )
     expect(tooLowIpca.normalized).toBeNull()
     expect(tooLowIpca.errors.ipcaAnnualPercent).toBe('Informe o IPCA anual.')
   })
@@ -123,7 +141,7 @@ describe('calculateInvestimentos', () => {
     const state = calculateInvestimentos(baseInputs({ initialAmount: 0, cdiAnnualPercent: null }), START_DATE)
     expect(state.result).toBeNull()
     expect(state.errors.initialAmount).toBe('Informe valor inicial ou aporte mensal.')
-    expect(state.errors.cdiAnnualPercent).toBe('Informe o CDI anual.')
+    expect(state.errors.cdiAnnualPercent).toBe('Informe o CDI medio projetado.')
   })
 
   it('includes the final-month contribution without yield', () => {
@@ -219,5 +237,53 @@ describe('calculateInvestimentos', () => {
     )
 
     expect(state.result!.warnings).toContain('IOF nao considerado para lotes com menos de 30 dias.')
+  })
+
+  it('uses cleaner comparison labels for end users', () => {
+    const state = calculateInvestimentos(baseInputs(), START_DATE)
+
+    expect(state.result!.rows.map(row => row.label)).toEqual([
+      'Seu investimento',
+      'Poupanca',
+      'CDB (100% do CDI)',
+      'LCI/LCA (85% do CDI)',
+    ])
+  })
+})
+
+describe('default projected CDI', () => {
+  it('uses current-year projection for terms up to 12 months', () => {
+    const cdi = getDefaultProjectedCdiPercent(12, {
+      2026: 13,
+      2027: 11,
+      2028: 10,
+    })
+
+    expect(cdi).toBe(13)
+  })
+
+  it('uses average of future annual projections for terms above 12 months', () => {
+    const cdi24Months = getDefaultProjectedCdiPercent(24, {
+      2026: 13,
+      2027: 11,
+      2028: 10,
+    })
+    const cdi36Months = getDefaultProjectedCdiPercent(36, {
+      2026: 13,
+      2027: 11,
+      2028: 10,
+    })
+
+    expect(cdi24Months).toBe(12)
+    expect(cdi36Months).toBeCloseTo(11.33, 2)
+  })
+
+  it('falls back to the closest available long-term projection when horizon exceeds available years', () => {
+    const cdi = getDefaultProjectedCdiPercent(48, {
+      2026: 13,
+      2027: 11,
+    })
+
+    expect(cdi).toBe(11.5)
   })
 })

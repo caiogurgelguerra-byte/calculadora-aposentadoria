@@ -63,7 +63,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <Line
               type="monotone"
               dataKey="savingsGross"
-              name="Poupanca simplificada"
+              name="Poupanca"
               stroke="#64748b"
               strokeWidth={2}
               dot={false}
@@ -71,7 +71,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <Line
               type="monotone"
               dataKey="cdb100CdiGross"
-              name="CDB 100% CDI"
+              name="CDB (100% do CDI)"
               stroke="#059669"
               strokeWidth={2}
               dot={false}
@@ -79,7 +79,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <Line
               type="monotone"
               dataKey="lciLca85CdiGross"
-              name="LCI/LCA hipotetica 85% CDI"
+              name="LCI/LCA (85% do CDI)"
               stroke="#f97316"
               strokeWidth={2}
               dot={false}

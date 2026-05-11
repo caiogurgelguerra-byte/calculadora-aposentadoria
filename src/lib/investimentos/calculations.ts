@@ -33,6 +33,8 @@ interface ProductSimulationResult {
   hasTaxablePositiveYieldLotUnder30Days: boolean
 }
 
+type ProjectedCdiByYear = Record<number, number>
+
 const MAX_MONEY = 999_999_999.99
 const MAX_TERM_MONTHS = 600
 
@@ -71,6 +73,30 @@ export function getIrRateByDays(days: number): number {
 export function calculateSavingsMonthlyRate(cdiAnnualRate: number): number {
   if (cdiAnnualRate > 0.085) return 0.005
   return annualToMonthlyRate(cdiAnnualRate * 0.7)
+}
+
+export function getDefaultProjectedCdiPercent(termMonths: number, projectedCdiByYear: ProjectedCdiByYear): number {
+  const years = Object.keys(projectedCdiByYear)
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((left, right) => left - right)
+
+  if (years.length === 0) return 10
+
+  if (termMonths <= 12) {
+    return projectedCdiByYear[years[0]]
+  }
+
+  const yearsNeeded = Math.ceil(termMonths / 12)
+  const selected: number[] = []
+
+  for (let index = 0; index < yearsNeeded; index += 1) {
+    const year = years[Math.min(index, years.length - 1)]
+    selected.push(projectedCdiByYear[year])
+  }
+
+  const average = selected.reduce((sum, value) => sum + value, 0) / selected.length
+  return roundCurrency(average)
 }
 
 function validateRateField(
@@ -240,8 +266,14 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
     errors.termValue = 'Informe um prazo valido.'
   }
 
-  validateRateField(errors, 'cdiAnnualPercent', inputs.cdiAnnualPercent, 'Informe o CDI anual.', -0.0000001, 100)
-  validateRateField(errors, 'ipcaAnnualPercent', inputs.ipcaAnnualPercent, 'Informe o IPCA anual.', -99.99, 100)
+  validateRateField(
+    errors,
+    'cdiAnnualPercent',
+    inputs.cdiAnnualPercent,
+    'Informe o CDI medio projetado.',
+    -0.0000001,
+    100
+  )
 
   if (inputs.rateType === 'cdi_percent') {
     validateRateField(errors, 'cdiPercent', inputs.cdiPercent, 'Informe o percentual do CDI.', -0.0000001, 1000)
@@ -252,6 +284,7 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
   }
 
   if (inputs.rateType === 'ipca_plus') {
+    validateRateField(errors, 'ipcaAnnualPercent', inputs.ipcaAnnualPercent, 'Informe o IPCA anual.', -99.99, 100)
     validateRateField(
       errors,
       'ipcaSpreadAnnualPercent',
@@ -307,19 +340,19 @@ export function calculateInvestimentos(inputs: InvestimentosInputs, startDate = 
     },
     {
       id: 'savings',
-      label: 'Poupanca simplificada (CDI proxy, TR=0)',
+      label: 'Poupanca',
       monthlyRate: savingsMonthlyRate,
       taxable: false,
     },
     {
       id: 'cdb_100_cdi',
-      label: 'CDB 100% CDI',
+      label: 'CDB (100% do CDI)',
       monthlyRate: cdbMonthlyRate,
       taxable: true,
     },
     {
       id: 'lci_lca_85_cdi',
-      label: 'LCI/LCA hipotetica 85% CDI',
+      label: 'LCI/LCA (85% do CDI)',
       monthlyRate: lciMonthlyRate,
       taxable: false,
     },
