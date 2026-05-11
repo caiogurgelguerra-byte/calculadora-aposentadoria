@@ -54,6 +54,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
           }}
           {...inputErrorProps('initialAmount')}
         />
+        <p className="text-xs text-gray-500">Valor aplicado hoje, antes de qualquer rendimento.</p>
         {renderError('initialAmount')}
       </label>
 
@@ -84,6 +85,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
               }}
               {...inputErrorProps('monthlyContribution')}
             />
+            <p className="text-xs text-gray-500">Aporte considerado no fim de cada mes.</p>
             {renderError('monthlyContribution')}
           </label>
         ) : null}
@@ -136,6 +138,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
           }}
           {...inputErrorProps('cdiAnnualPercent')}
         />
+        <p className="text-xs text-gray-500">Premissa editavel. Exemplo: 10,65 = 10,65% ao ano.</p>
         {renderError('cdiAnnualPercent')}
       </label>
 
@@ -154,6 +157,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
           }}
           {...inputErrorProps('ipcaAnnualPercent')}
         />
+        <p className="text-xs text-gray-500">Premissa editavel de inflacao para a simulacao.</p>
         {renderError('ipcaAnnualPercent')}
       </label>
 
@@ -208,6 +212,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
             }}
             {...inputErrorProps('cdiPercent')}
           />
+          <p className="text-xs text-gray-500">Use 100 para 100% do CDI, 85 para 85%, 110 para 110%.</p>
           {renderError('cdiPercent')}
         </label>
       ) : null}
@@ -228,6 +233,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
             }}
             {...inputErrorProps('fixedAnnualPercent')}
           />
+          <p className="text-xs text-gray-500">Taxa anual fixa da aplicacao. Exemplo: 12,00.</p>
           {renderError('fixedAnnualPercent')}
         </label>
       ) : null}
@@ -248,6 +254,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
             }}
             {...inputErrorProps('ipcaSpreadAnnualPercent')}
           />
+          <p className="text-xs text-gray-500">Ganho real esperado alem da inflacao. Exemplo: 6,00.</p>
           {renderError('ipcaSpreadAnnualPercent')}
         </label>
       ) : null}
@@ -263,6 +270,7 @@ export default function InputForm({ value, errors, onChange }: Props) {
           />
           <span className="text-sm font-medium text-gray-600">Aplicacao isenta de IR</span>
         </label>
+        <p className="text-xs text-gray-500">Desmarcado: aplica tabela regressiva de IR no resgate final.</p>
       </fieldset>
     </div>
   )
