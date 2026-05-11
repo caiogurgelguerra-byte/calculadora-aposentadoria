@@ -75,6 +75,7 @@ describe('InvestimentosPage', () => {
 
     const amountInput = screen.getByLabelText('Valor inicial')
     fireEvent.change(amountInput, { target: { value: '1000' } })
+    expect(screen.getByDisplayValue('1000')).toBeInTheDocument()
     fireEvent.blur(amountInput)
 
     expect(screen.getByDisplayValue('1.000,00')).toBeInTheDocument()

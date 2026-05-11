@@ -31,36 +31,14 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
   const [fixedAnnualPercent, setFixedAnnualPercent] = useState(toPercentInputValue(value.fixedAnnualPercent))
   const [ipcaSpreadAnnualPercent, setIpcaSpreadAnnualPercent] = useState(toPercentInputValue(value.ipcaSpreadAnnualPercent))
   const [termValue, setTermValue] = useState('12')
+  const [isCdiFieldFocused, setIsCdiFieldFocused] = useState(false)
 
   const update = (patch: Partial<InvestimentosInputs>) => onChange({ ...value, ...patch })
 
   useEffect(() => {
-    setInitialAmount(toMoneyInputValue(value.initialAmount))
-  }, [value.initialAmount])
-
-  useEffect(() => {
-    setMonthlyContribution(toMoneyInputValue(value.monthlyContribution))
-  }, [value.monthlyContribution])
-
-  useEffect(() => {
+    if (isCdiFieldFocused) return
     setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))
-  }, [value.cdiAnnualPercent])
-
-  useEffect(() => {
-    setIpcaAnnualPercent(toPercentInputValue(value.ipcaAnnualPercent))
-  }, [value.ipcaAnnualPercent])
-
-  useEffect(() => {
-    setCdiPercent(toPercentInputValue(value.cdiPercent))
-  }, [value.cdiPercent])
-
-  useEffect(() => {
-    setFixedAnnualPercent(toPercentInputValue(value.fixedAnnualPercent))
-  }, [value.fixedAnnualPercent])
-
-  useEffect(() => {
-    setIpcaSpreadAnnualPercent(toPercentInputValue(value.ipcaSpreadAnnualPercent))
-  }, [value.ipcaSpreadAnnualPercent])
+  }, [isCdiFieldFocused, value.cdiAnnualPercent])
 
   const inputErrorProps = (field: keyof InvestimentosErrors) => {
     const hasError = Boolean(errors[field])
@@ -183,12 +161,16 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
             className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="10,00"
             value={cdiAnnualPercent}
+            onFocus={() => setIsCdiFieldFocused(true)}
             onChange={(event) => {
               setCdiAnnualPercent(event.target.value)
               update({ cdiAnnualPercent: parseBrazilianPercent(event.target.value) })
               onCdiManualChange()
             }}
-            onBlur={() => setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))}
+            onBlur={() => {
+              setIsCdiFieldFocused(false)
+              setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))
+            }}
             {...inputErrorProps('cdiAnnualPercent')}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
