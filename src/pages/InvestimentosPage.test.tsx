@@ -27,8 +27,8 @@ describe('InvestimentosPage', () => {
     fireEvent.change(screen.getByLabelText('IPCA anual'), { target: { value: '4,50' } })
     fireEvent.change(screen.getByRole('textbox', { name: '% do CDI' }), { target: { value: '100' } })
 
-    expect(screen.getByText('Valor liquido final')).toBeInTheDocument()
-    expect(screen.getByText('Evolucao bruta mes a mes')).toBeInTheDocument()
+    expect(screen.getByText('Valor liquido no resgate')).toBeInTheDocument()
+    expect(screen.getByText('Evolucao bruta ao longo do prazo')).toBeInTheDocument()
     expect(screen.getByText('Comparativo liquido final dos investimentos')).toBeInTheDocument()
     expect(screen.getByTestId('comparison-row-custom')).toBeInTheDocument()
     expect(screen.getByTestId('comparison-row-cdb_100_cdi')).toBeInTheDocument()

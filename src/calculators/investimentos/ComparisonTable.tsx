@@ -29,7 +29,7 @@ export default function ComparisonTable({ rows }: Props) {
               <th className="text-right font-semibold px-4 py-3">Valor bruto</th>
               <th className="text-right font-semibold px-4 py-3">Imposto</th>
               <th className="text-right font-semibold px-4 py-3">Valor liquido</th>
-              <th className="text-right font-semibold px-4 py-3">Diferenca liquida</th>
+              <th className="text-right font-semibold px-4 py-3">Dif. liquida vs seu investimento</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">

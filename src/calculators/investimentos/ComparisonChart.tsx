@@ -31,10 +31,10 @@ export default function ComparisonChart({ simulation, rows }: Props) {
       aria-labelledby="investment-chart-title"
     >
       <h3 id="investment-chart-title" className="text-sm font-semibold text-gray-700">
-        Evolucao bruta mes a mes
+        Evolucao bruta ao longo do prazo
       </h3>
       <p className="text-xs text-gray-500 mt-1">
-        O grafico mostra valores brutos ao longo do tempo. A decisao final deve usar o valor liquido da tabela.
+        O grafico mostra a tendencia bruta. Para decidir, compare o valor liquido na tabela.
       </p>
       <p className="sr-only" data-testid="chart-summary">
         Valores liquidos finais: {finalRows}
