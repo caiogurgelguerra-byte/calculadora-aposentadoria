@@ -132,6 +132,8 @@ describe('route and home integration', () => {
     window.history.pushState({}, '', '/investimentos')
     render(<App />)
 
+    expect(await screen.findByText('Meu Mapa Financeiro')).toBeInTheDocument()
+    expect(screen.queryByText('Seu Mapa Financeiro')).not.toBeInTheDocument()
     expect(await screen.findByRole('link', { name: 'Falar no WhatsApp' })).toHaveAttribute(
       'href',
       'https://wa.me/5584996654671'

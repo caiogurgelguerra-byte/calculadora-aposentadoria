@@ -40,12 +40,12 @@ Deno.serve(async (req) => {
     const ts = new Date().toISOString();
 
     const titularBody = {
-      from: 'Seu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
+      from: 'Meu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
       to: email,
-      subject: 'Sua conta foi excluída — Seu Mapa Financeiro',
+      subject: 'Sua conta foi excluída — Meu Mapa Financeiro',
       text: `Olá, ${nome}!
 
-Confirmamos que sua conta no Seu Mapa Financeiro foi excluída em ${ts}, conforme seu pedido (LGPD Art. 18).
+Confirmamos que sua conta no Meu Mapa Financeiro foi excluída em ${ts}, conforme seu pedido (LGPD Art. 18).
 
 Os dados pessoais associados (cadastro, registros de autenticação) foram removidos dos nossos sistemas. Backups técnicos podem reter cópias residuais por até 30 dias antes da rotação automática, conforme política de privacidade.
 
@@ -54,7 +54,7 @@ Em caso de dúvida, fale comigo: caio.gurgel.guerra@gmail.com.
     };
 
     const adminBody = {
-      from: 'Seu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
+      from: 'Meu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
       to: adminEmail,
       subject: `Cliente solicitou exclusão LGPD — ${nome}`,
       text: `Cliente ${nome} (id: ${user.id}, email: ${email}) usou o botão "Excluir minha conta" em ${ts}.

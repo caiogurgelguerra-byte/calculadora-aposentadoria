@@ -33,7 +33,7 @@ Esses leads NÃO foram notificados via webhook normal. Verificar Edge Function l
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Seu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
+        from: 'Meu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
         to: adminEmail,
         subject: `[Auditoria] ${data.length} lead(s) órfão(s)`,
         text, html: text.replace(/\n/g, '<br>'),

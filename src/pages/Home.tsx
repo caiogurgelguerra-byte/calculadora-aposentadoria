@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BrandMark } from '../components/BrandLockup'
 
 const CALCULATORS = [
   {
@@ -26,12 +27,13 @@ export default function Home() {
     <div className="bg-[#f6f7f9]">
       <section className="border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 py-10">
+          <BrandMark className="mb-5 h-20 w-20" />
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
             Ferramentas abertas
           </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Seu Mapa Financeiro</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Meu Mapa Financeiro</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            Calculadoras simples para apoiar decisoes financeiras antes, durante e depois da consultoria.
+            O seu mapa financeiro em calculadoras simples para apoiar decisoes antes, durante e depois da consultoria.
           </p>
         </div>
       </section>

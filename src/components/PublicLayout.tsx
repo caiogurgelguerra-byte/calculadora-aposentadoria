@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { whatsappUrl } from '../lib/contact/whatsapp'
+import { BrandLockup } from './BrandLockup'
 import { Footer } from './Footer'
 
 const navLinks = [
@@ -15,13 +16,7 @@ export default function PublicLayout() {
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <Link to="/" className="flex items-center gap-3 text-slate-900 hover:text-slate-700 transition-colors">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-sm font-semibold text-white">
-              SMF
-            </span>
-            <span>
-              <span className="block text-sm font-semibold leading-tight">Seu Mapa Financeiro</span>
-              <span className="block text-xs text-slate-500">Ferramentas e consultoria</span>
-            </span>
+            <BrandLockup />
           </Link>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:gap-6">

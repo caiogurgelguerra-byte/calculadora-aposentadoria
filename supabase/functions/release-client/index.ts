@@ -50,8 +50,8 @@ Acesse o portal: ${appUrl}/login
 Este é um email transacional, parte da execução do serviço. Não é oferta nem recomendação de produto financeiro (ver Termos de Uso: ${appUrl}/termos).
 
 —
-Caio Gurgel Guerra, CFP®
-Seu Mapa Financeiro · meumapafinanceiro.ia.br
+Caio Guerra
+Meu Mapa Financeiro · meumapafinanceiro.ia.br
 `;
     const html = text.replace(/\n/g, '<br>');
 
@@ -62,9 +62,9 @@ Seu Mapa Financeiro · meumapafinanceiro.ia.br
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Seu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
+        from: 'Meu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
         to: email,
-        subject: 'Seu acesso foi liberado — Seu Mapa Financeiro',
+        subject: 'Seu acesso foi liberado — Meu Mapa Financeiro',
         text, html,
       }),
     });

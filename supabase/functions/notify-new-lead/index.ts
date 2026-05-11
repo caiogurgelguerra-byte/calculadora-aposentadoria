@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     const adminEmail = Deno.env.get('ADMIN_NOTIFICATION_EMAIL')!;
     const appUrl = Deno.env.get('APP_URL')!;
 
-    const text = `Novo lead cadastrado no Seu Mapa Financeiro.
+    const text = `Novo lead cadastrado no Meu Mapa Financeiro.
 
 Nome: ${r.nome_completo}
 Email: ${email}
@@ -61,7 +61,7 @@ Acesse o painel admin para revisar: ${appUrl}/admin
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Seu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
+        from: 'Meu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
         to: adminEmail,
         subject: `Novo lead: ${r.nome_completo}`,
         text, html,

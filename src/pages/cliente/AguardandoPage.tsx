@@ -14,7 +14,7 @@ export function AguardandoPage() {
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Você está na fila!</h1>
       <p className="mb-4">
-        Recebemos seu cadastro. Para garantir um atendimento de qualidade, eu (Caio Gurgel)
+        Recebemos seu cadastro. Para garantir um atendimento de qualidade, eu (Caio Guerra)
         reviso pessoalmente cada cliente antes de liberar o onboarding.
       </p>
       <p className="mb-4">

@@ -3,12 +3,12 @@ import { POLICY_LAST_UPDATED } from '../../lib/legal/version';
 export function PrivacidadePage() {
   return (
     <article className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-2">Política de Privacidade — Seu Mapa Financeiro</h1>
+      <h1 className="text-2xl font-semibold mb-2">Política de Privacidade — Meu Mapa Financeiro</h1>
       <p className="text-sm text-gray-500 mb-6"><em>Versão 1 — Última atualização: {POLICY_LAST_UPDATED}</em></p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">1. Controlador</h2>
       <p className="text-gray-700 mb-4">
-        Caio Gurgel Guerra (CPF fornecido a autoridade competente sob solicitação formal) é o
+        Caio Guerra (CPF fornecido a autoridade competente sob solicitação formal) é o
         controlador dos dados pessoais tratados pela plataforma{' '}
         <code>meumapafinanceiro.ia.br</code>. Quando aplicável, o regime societário será atualizado
         neste item (PF autônoma, ME ou LTDA) com CNPJ correspondente.
@@ -169,8 +169,8 @@ export function PrivacidadePage() {
 
       <h2 className="text-lg font-semibold mt-6 mb-2">11. Limites do serviço</h2>
       <p className="text-gray-700 mb-4">
-        A consultoria via Seu Mapa Financeiro é <strong>planejamento financeiro pessoal</strong>{' '}
-        prestado por Caio Gurgel Guerra.{' '}
+        A consultoria via Meu Mapa Financeiro é <strong>planejamento financeiro pessoal</strong>{' '}
+        prestado por Caio Guerra.{' '}
         <strong>Não constitui recomendação de produto de investimento (CVM 178/2023)</strong> e não
         substitui assessoria de valores mobiliários. Detalhes em <a href="/termos" className="text-blue-600 underline">Termos de Uso</a>.
       </p>

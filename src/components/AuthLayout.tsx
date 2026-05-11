@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { signOut } from '../lib/auth/mutations';
 import { useProfile } from '../hooks/auth/useProfile';
+import { BrandLockup } from './BrandLockup';
 import { Footer } from './Footer';
 
 export function AuthLayout() {
@@ -19,7 +20,9 @@ export function AuthLayout() {
     <div className="min-h-screen flex flex-col">
       <header className="bg-gradient-to-r from-blue-900 to-indigo-700 px-6 py-5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="text-white font-semibold text-lg">Seu Mapa Financeiro</Link>
+          <Link to="/" className="rounded-lg bg-white/95 px-3 py-2 text-slate-900">
+            <BrandLockup showSubtitle={false} />
+          </Link>
           <div className="flex items-center gap-4 text-white text-sm">
             {email && <span>{email}</span>}
             <button

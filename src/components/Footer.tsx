@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200 py-6 px-4 mt-auto">
       <div className="max-w-6xl mx-auto text-center text-sm text-gray-600 space-y-1">
-        <p>© 2026 Seu Mapa Financeiro · Caio Gurgel Guerra</p>
+        <p>© 2026 Meu Mapa Financeiro · Caio Guerra</p>
         <p>
           <Link to="/privacidade" className="hover:text-gray-900">
             Politica de Privacidade
