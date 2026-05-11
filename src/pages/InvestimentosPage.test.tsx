@@ -6,6 +6,7 @@ import Home from './Home'
 import InvestimentosPage from './InvestimentosPage'
 
 beforeEach(() => {
+  vi.unstubAllEnvs()
   vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}))
 })
 
@@ -63,6 +64,7 @@ describe('InvestimentosPage', () => {
   })
 
   it('formats money input on blur and loads projected CDI automatically', async () => {
+    vi.stubEnv('VITE_ENABLE_PUBLIC_BCB_FOCUS_FETCH', 'true')
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -77,6 +79,7 @@ describe('InvestimentosPage', () => {
     renderPage()
 
     const amountInput = screen.getByLabelText('Valor inicial')
+    fireEvent.focus(amountInput)
     fireEvent.change(amountInput, { target: { value: '1000' } })
     expect(screen.getByDisplayValue('1000')).toBeInTheDocument()
     fireEvent.blur(amountInput)
@@ -91,6 +94,17 @@ describe('InvestimentosPage', () => {
     expect(screen.getByText('Premissas de comparacao')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '% do CDI do CDB' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '% do CDI da LCI/LCA' })).toBeInTheDocument()
+  })
+
+  it('shows local default helper text when public BCB fetch is disabled', () => {
+    renderPage()
+
+    expect(
+      screen.getByText(
+        'Usando valor padrao local. Para publicar sem trafego direto ao BC, mantenha essa premissa editavel.'
+      )
+    ).toBeInTheDocument()
+    expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 })
 

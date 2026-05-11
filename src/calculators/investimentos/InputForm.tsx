@@ -5,6 +5,7 @@ import {
   parseBrazilianMoney,
   parseBrazilianPercent,
 } from '../../lib/investimentos/format'
+import type { ProjectedCdiSource } from '../../lib/investimentos/focus'
 import type { InvestimentosErrors, InvestimentosInputs, RateType, TermUnit } from '../../lib/investimentos/types'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
   errors: InvestimentosErrors
   onChange: (next: InvestimentosInputs) => void
   onCdiManualChange: () => void
+  cdiSource: ProjectedCdiSource
 }
 
 function toMoneyInputValue(value: number): string {
@@ -22,7 +24,19 @@ function toPercentInputValue(value: number | null): string {
   return formatPercentInput(value)
 }
 
-export default function InputForm({ value, errors, onChange, onCdiManualChange }: Props) {
+function getCdiHelperText(cdiSource: ProjectedCdiSource): string {
+  if (cdiSource === 'bcb_focus') {
+    return 'Preenchido com base no Focus/BC. Voce pode ajustar.'
+  }
+
+  if (cdiSource === 'local_default_unavailable') {
+    return 'Nao foi possivel carregar o Focus/BC agora. Usando valor padrao local. Voce pode ajustar.'
+  }
+
+  return 'Usando valor padrao local. Para publicar sem trafego direto ao BC, mantenha essa premissa editavel.'
+}
+
+export default function InputForm({ value, errors, onChange, onCdiManualChange, cdiSource }: Props) {
   const [initialAmount, setInitialAmount] = useState(toMoneyInputValue(value.initialAmount))
   const [monthlyContribution, setMonthlyContribution] = useState(toMoneyInputValue(value.monthlyContribution))
   const [cdiAnnualPercent, setCdiAnnualPercent] = useState(toPercentInputValue(value.cdiAnnualPercent))
@@ -33,14 +47,59 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
   const [fixedAnnualPercent, setFixedAnnualPercent] = useState(toPercentInputValue(value.fixedAnnualPercent))
   const [ipcaSpreadAnnualPercent, setIpcaSpreadAnnualPercent] = useState(toPercentInputValue(value.ipcaSpreadAnnualPercent))
   const [termValue, setTermValue] = useState('12')
-  const [isCdiFieldFocused, setIsCdiFieldFocused] = useState(false)
+  const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const update = (patch: Partial<InvestimentosInputs>) => onChange({ ...value, ...patch })
 
   useEffect(() => {
-    if (isCdiFieldFocused) return
+    if (focusedField === 'initialAmount') return
+    setInitialAmount(toMoneyInputValue(value.initialAmount))
+  }, [focusedField, value.initialAmount])
+
+  useEffect(() => {
+    if (focusedField === 'monthlyContribution') return
+    setMonthlyContribution(toMoneyInputValue(value.monthlyContribution))
+  }, [focusedField, value.monthlyContribution])
+
+  useEffect(() => {
+    if (focusedField === 'cdiAnnualPercent') return
     setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))
-  }, [isCdiFieldFocused, value.cdiAnnualPercent])
+  }, [focusedField, value.cdiAnnualPercent])
+
+  useEffect(() => {
+    if (focusedField === 'ipcaAnnualPercent') return
+    setIpcaAnnualPercent(toPercentInputValue(value.ipcaAnnualPercent))
+  }, [focusedField, value.ipcaAnnualPercent])
+
+  useEffect(() => {
+    if (focusedField === 'cdiPercent') return
+    setCdiPercent(toPercentInputValue(value.cdiPercent))
+  }, [focusedField, value.cdiPercent])
+
+  useEffect(() => {
+    if (focusedField === 'cdbPercent') return
+    setCdbPercent(toPercentInputValue(value.cdbPercent))
+  }, [focusedField, value.cdbPercent])
+
+  useEffect(() => {
+    if (focusedField === 'lciLcaPercent') return
+    setLciLcaPercent(toPercentInputValue(value.lciLcaPercent))
+  }, [focusedField, value.lciLcaPercent])
+
+  useEffect(() => {
+    if (focusedField === 'fixedAnnualPercent') return
+    setFixedAnnualPercent(toPercentInputValue(value.fixedAnnualPercent))
+  }, [focusedField, value.fixedAnnualPercent])
+
+  useEffect(() => {
+    if (focusedField === 'ipcaSpreadAnnualPercent') return
+    setIpcaSpreadAnnualPercent(toPercentInputValue(value.ipcaSpreadAnnualPercent))
+  }, [focusedField, value.ipcaSpreadAnnualPercent])
+
+  useEffect(() => {
+    if (focusedField === 'termValue') return
+    setTermValue(String(value.termValue))
+  }, [focusedField, value.termValue])
 
   const inputErrorProps = (field: keyof InvestimentosErrors) => {
     const hasError = Boolean(errors[field])
@@ -72,11 +131,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
             className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="0,00"
             value={initialAmount}
+            onFocus={() => setFocusedField('initialAmount')}
             onChange={(event) => {
               setInitialAmount(event.target.value)
               update({ initialAmount: parseBrazilianMoney(event.target.value) })
             }}
-            onBlur={() => setInitialAmount(toMoneyInputValue(value.initialAmount))}
+            onBlur={() => {
+              setFocusedField(null)
+              setInitialAmount(toMoneyInputValue(value.initialAmount))
+            }}
             {...inputErrorProps('initialAmount')}
           />
         </div>
@@ -107,11 +170,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
                 className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0,00"
                 value={monthlyContribution}
+                onFocus={() => setFocusedField('monthlyContribution')}
                 onChange={(event) => {
                   setMonthlyContribution(event.target.value)
                   update({ monthlyContribution: parseBrazilianMoney(event.target.value) })
                 }}
-                onBlur={() => setMonthlyContribution(toMoneyInputValue(value.monthlyContribution))}
+                onBlur={() => {
+                  setFocusedField(null)
+                  setMonthlyContribution(toMoneyInputValue(value.monthlyContribution))
+                }}
                 {...inputErrorProps('monthlyContribution')}
               />
             </div>
@@ -130,10 +197,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
             min={1}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             value={termValue}
+            onFocus={() => setFocusedField('termValue')}
             onChange={(event) => {
               setTermValue(event.target.value)
               const parsed = Number.parseInt(event.target.value, 10)
               update({ termValue: Number.isFinite(parsed) ? parsed : 0 })
+            }}
+            onBlur={() => {
+              setFocusedField(null)
+              setTermValue(String(value.termValue))
             }}
             {...inputErrorProps('termValue')}
           />
@@ -163,21 +235,21 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
             className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="10,00"
             value={cdiAnnualPercent}
-            onFocus={() => setIsCdiFieldFocused(true)}
+            onFocus={() => setFocusedField('cdiAnnualPercent')}
             onChange={(event) => {
               setCdiAnnualPercent(event.target.value)
               update({ cdiAnnualPercent: parseBrazilianPercent(event.target.value) })
               onCdiManualChange()
             }}
             onBlur={() => {
-              setIsCdiFieldFocused(false)
+              setFocusedField(null)
               setCdiAnnualPercent(toPercentInputValue(value.cdiAnnualPercent))
             }}
             {...inputErrorProps('cdiAnnualPercent')}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
         </div>
-        <p className="text-xs text-gray-500">Preenchido com base no Focus/BC quando disponivel. Voce pode ajustar.</p>
+        <p className="text-xs text-gray-500">{getCdiHelperText(cdiSource)}</p>
         {renderError('cdiAnnualPercent')}
       </label>
 
@@ -235,11 +307,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
                 className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="100"
                 value={cdiPercent}
+                onFocus={() => setFocusedField('cdiPercent')}
                 onChange={(event) => {
                   setCdiPercent(event.target.value)
                   update({ cdiPercent: parseBrazilianPercent(event.target.value) })
                 }}
-                onBlur={() => setCdiPercent(toPercentInputValue(value.cdiPercent))}
+                onBlur={() => {
+                  setFocusedField(null)
+                  setCdiPercent(toPercentInputValue(value.cdiPercent))
+                }}
                 {...inputErrorProps('cdiPercent')}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
@@ -258,11 +334,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
                 className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="100"
                 value={cdbPercent}
+                onFocus={() => setFocusedField('cdbPercent')}
                 onChange={(event) => {
                   setCdbPercent(event.target.value)
                   update({ cdbPercent: parseBrazilianPercent(event.target.value) })
                 }}
-                onBlur={() => setCdbPercent(toPercentInputValue(value.cdbPercent))}
+                onBlur={() => {
+                  setFocusedField(null)
+                  setCdbPercent(toPercentInputValue(value.cdbPercent))
+                }}
                 {...inputErrorProps('cdbPercent')}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
@@ -280,11 +360,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
                 className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="85"
                 value={lciLcaPercent}
+                onFocus={() => setFocusedField('lciLcaPercent')}
                 onChange={(event) => {
                   setLciLcaPercent(event.target.value)
                   update({ lciLcaPercent: parseBrazilianPercent(event.target.value) })
                 }}
-                onBlur={() => setLciLcaPercent(toPercentInputValue(value.lciLcaPercent))}
+                onBlur={() => {
+                  setFocusedField(null)
+                  setLciLcaPercent(toPercentInputValue(value.lciLcaPercent))
+                }}
                 {...inputErrorProps('lciLcaPercent')}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
@@ -305,11 +389,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
               className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="12,00"
               value={fixedAnnualPercent}
+              onFocus={() => setFocusedField('fixedAnnualPercent')}
               onChange={(event) => {
                 setFixedAnnualPercent(event.target.value)
                 update({ fixedAnnualPercent: parseBrazilianPercent(event.target.value) })
               }}
-              onBlur={() => setFixedAnnualPercent(toPercentInputValue(value.fixedAnnualPercent))}
+              onBlur={() => {
+                setFocusedField(null)
+                setFixedAnnualPercent(toPercentInputValue(value.fixedAnnualPercent))
+              }}
               {...inputErrorProps('fixedAnnualPercent')}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
@@ -331,11 +419,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
                 className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="4,50"
                 value={ipcaAnnualPercent}
+                onFocus={() => setFocusedField('ipcaAnnualPercent')}
                 onChange={(event) => {
                   setIpcaAnnualPercent(event.target.value)
                   update({ ipcaAnnualPercent: parseBrazilianPercent(event.target.value) })
                 }}
-                onBlur={() => setIpcaAnnualPercent(toPercentInputValue(value.ipcaAnnualPercent))}
+                onBlur={() => {
+                  setFocusedField(null)
+                  setIpcaAnnualPercent(toPercentInputValue(value.ipcaAnnualPercent))
+                }}
                 {...inputErrorProps('ipcaAnnualPercent')}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
@@ -354,11 +446,15 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange }
                 className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="6,00"
                 value={ipcaSpreadAnnualPercent}
+                onFocus={() => setFocusedField('ipcaSpreadAnnualPercent')}
                 onChange={(event) => {
                   setIpcaSpreadAnnualPercent(event.target.value)
                   update({ ipcaSpreadAnnualPercent: parseBrazilianPercent(event.target.value) })
                 }}
-                onBlur={() => setIpcaSpreadAnnualPercent(toPercentInputValue(value.ipcaSpreadAnnualPercent))}
+                onBlur={() => {
+                  setFocusedField(null)
+                  setIpcaSpreadAnnualPercent(toPercentInputValue(value.ipcaSpreadAnnualPercent))
+                }}
                 {...inputErrorProps('ipcaSpreadAnnualPercent')}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>

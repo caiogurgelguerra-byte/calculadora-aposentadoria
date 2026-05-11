@@ -5,7 +5,7 @@ import InputForm from '../calculators/investimentos/InputForm'
 import ResultCards from '../calculators/investimentos/ResultCards'
 import { useInvestimentosCalculations } from '../hooks/investimentos/useInvestimentosCalculations'
 import { getDefaultProjectedCdiPercent } from '../lib/investimentos/calculations'
-import { fetchLatestProjectedCdiByYear, getFallbackProjectedCdiByYear } from '../lib/investimentos/focus'
+import { getFallbackProjectedCdiByYear, resolveProjectedCdiByYear, type ProjectedCdiSource } from '../lib/investimentos/focus'
 import type { InvestimentosInputs } from '../lib/investimentos/types'
 
 const DEFAULT_INPUTS: InvestimentosInputs = {
@@ -29,7 +29,9 @@ export default function InvestimentosPage() {
   const [inputs, setInputs] = useState<InvestimentosInputs>(DEFAULT_INPUTS)
   const [autoProjectedCdiEnabled, setAutoProjectedCdiEnabled] = useState(true)
   const [projectedCdiByYear, setProjectedCdiByYear] = useState<Record<number, number>>(getFallbackProjectedCdiByYear())
+  const [cdiSource, setCdiSource] = useState<ProjectedCdiSource>('local_default')
   const { result, errors } = useInvestimentosCalculations(inputs)
+  const enablePublicCdiFetch = import.meta.env.VITE_ENABLE_PUBLIC_BCB_FOCUS_FETCH === 'true'
 
   const termMonths = useMemo(
     () => (inputs.termUnit === 'years' ? inputs.termValue * 12 : inputs.termValue),
@@ -37,19 +39,26 @@ export default function InvestimentosPage() {
   )
 
   useEffect(() => {
+    if (!enablePublicCdiFetch) {
+      setCdiSource('local_default')
+      return
+    }
+
     let active = true
 
-    fetchLatestProjectedCdiByYear()
-      .then((nextProjectedCdiByYear) => {
-        if (!active || Object.keys(nextProjectedCdiByYear).length === 0) return
-        setProjectedCdiByYear(nextProjectedCdiByYear)
+    resolveProjectedCdiByYear({
+      enablePublicFetch: enablePublicCdiFetch,
+    })
+      .then(({ projectedByYear, source }) => {
+        if (!active) return
+        setProjectedCdiByYear(projectedByYear)
+        setCdiSource(source)
       })
-      .catch(() => {})
 
     return () => {
       active = false
     }
-  }, [])
+  }, [enablePublicCdiFetch])
 
   useEffect(() => {
     if (!autoProjectedCdiEnabled) return
@@ -84,6 +93,7 @@ export default function InvestimentosPage() {
               errors={errors}
               onChange={handleChange}
               onCdiManualChange={() => setAutoProjectedCdiEnabled(false)}
+              cdiSource={cdiSource}
             />
           </div>
 
