@@ -44,8 +44,8 @@ const TOOL_CARDS = [
   {
     to: '/salario',
     kicker: 'Aberta',
-    title: 'Salario liquido',
-    description: 'Calcule o valor aproximado que cai na conta apos descontos.',
+    title: 'Salário líquido',
+    description: 'Calcule o valor aproximado que cai na conta após descontos.',
     active: false,
   },
 ]
@@ -111,8 +111,8 @@ export default function InvestimentosPage() {
                 Calculadora de Investimentos
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                Simule seu investimento e compare com poupanca, CDB e LCI/LCA em uma leitura simples de bruto,
-                imposto e valor liquido no resgate.
+                Simule seu investimento e compare com poupança, CDB e LCI/LCA em uma leitura simples de bruto,
+                imposto e valor líquido no resgate.
               </p>
             </div>
 
@@ -127,7 +127,7 @@ export default function InvestimentosPage() {
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs font-medium text-slate-500">Leitura</p>
-                <p className="mt-1 font-semibold text-slate-900">Liquida</p>
+                <p className="mt-1 font-semibold text-slate-900">Líquida</p>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function InvestimentosPage() {
             <h2 id="tools-title" className="text-base font-semibold text-slate-950">
               Ferramentas financeiras
             </h2>
-            <p className="text-sm text-slate-500">Calculadoras abertas para apoiar decisoes do dia a dia.</p>
+            <p className="text-sm text-slate-500">Calculadoras abertas para apoiar decisões do dia a dia.</p>
           </div>
         </div>
 
@@ -171,7 +171,7 @@ export default function InvestimentosPage() {
       <section aria-labelledby="simulator-title" className="max-w-7xl mx-auto px-4 pb-8">
         <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 id="simulator-title" className="text-base font-semibold text-slate-950">
+              <h2 id="simulator-title" className="text-base font-semibold text-slate-950">
               Simulador
             </h2>
             <p className="text-sm text-slate-500">Preencha as premissas e acompanhe o comparativo ao lado.</p>
@@ -196,9 +196,9 @@ export default function InvestimentosPage() {
                 <ComparisonChart simulation={result.simulation} rows={result.rows} />
                 <ComparisonTable rows={result.rows} />
                 <div className="rounded-lg border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-500">
-                  Valores estimados. A simulacao nao considera marcacao a mercado, spread, taxas, carencia,
-                  liquidez, risco de credito, cobertura, limites ou elegibilidade do FGC, mudancas futuras de
-                  tributacao, come-cotas ou IOF.
+                  Valores estimados. A simulação não considera marcação a mercado, spread, taxas, carência,
+                  liquidez, risco de crédito, cobertura, limites ou elegibilidade do FGC, mudanças futuras de
+                  tributação, come-cotas ou IOF.
                 </div>
               </>
             ) : (

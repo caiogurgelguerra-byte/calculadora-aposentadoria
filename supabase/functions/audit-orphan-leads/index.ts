@@ -23,7 +23,7 @@ Deno.serve(async () => {
 
 ${lines}
 
-Esses leads NÃO foram notificados via webhook normal. Verificar Edge Function logs e Resend.
+Esses leads NÃO foram notificados via webhook normal. Verificar logs da Edge Function e o Resend.
 `;
 
     await fetch('https://api.resend.com/emails', {

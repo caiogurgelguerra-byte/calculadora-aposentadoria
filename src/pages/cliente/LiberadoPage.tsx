@@ -14,7 +14,7 @@ export function LiberadoPage() {
         Em breve você poderá preencher os dados do seu planejamento aqui.
       </p>
       <p className="mb-6">
-        Vou entrar em contato em breve via WhatsApp ou email para combinarmos os próximos passos.
+        Vou entrar em contato em breve via WhatsApp ou e-mail para combinarmos os próximos passos.
         Se preferir, me chame:{' '}
         <a href={whatsappUrl('liberado')} target="_blank" rel="noreferrer"
            className="text-blue-600 underline">WhatsApp</a>.

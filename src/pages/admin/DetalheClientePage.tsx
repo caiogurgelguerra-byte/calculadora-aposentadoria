@@ -29,7 +29,7 @@ export function DetalheClientePage() {
 
       <section className="bg-white rounded-lg shadow-sm border p-4 mb-4">
         <h2 className="font-semibold mb-2">Identificação</h2>
-        <p>Email: {c.email}</p>
+        <p>E-mail: {c.email}</p>
         <p>Telefone: {c.telefone}</p>
       </section>
 

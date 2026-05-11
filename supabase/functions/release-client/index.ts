@@ -47,7 +47,7 @@ Seu acesso foi liberado. Em breve entraremos em contato para combinarmos os pró
 
 Acesse o portal: ${appUrl}/login
 
-Este é um email transacional, parte da execução do serviço. Não é oferta nem recomendação de produto financeiro (ver Termos de Uso: ${appUrl}/termos).
+Este é um e-mail transacional, parte da execução do serviço. Não é oferta nem recomendação de produto financeiro (ver Termos de Uso: ${appUrl}/termos).
 
 —
 Caio Guerra

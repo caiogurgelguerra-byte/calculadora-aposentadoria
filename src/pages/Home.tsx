@@ -6,19 +6,19 @@ const CALCULATORS = [
     to: '/investimentos',
     tag: 'Mais usada',
     title: 'Calculadora de Investimentos',
-    description: 'Compare seu investimento com poupanca, CDB e LCI/LCA.',
+    description: 'Compare seu investimento com poupança, CDB e LCI/LCA.',
   },
   {
     to: '/aposentadoria',
     tag: 'Planejamento',
     title: 'Calculadora de Aposentadoria',
-    description: 'Projete quanto poupar por mes para buscar a renda que voce quer.',
+    description: 'Projete quanto poupar por mês para buscar a renda que você quer.',
   },
   {
     to: '/salario',
     tag: 'Renda',
-    title: 'Calculadora de Salario Liquido',
-    description: 'Estime quanto cai na conta apos INSS e imposto de renda.',
+    title: 'Calculadora de Salário Líquido',
+    description: 'Estime quanto cai na conta após INSS e imposto de renda.',
   },
 ]
 
@@ -33,14 +33,14 @@ export default function Home() {
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Meu Mapa Financeiro</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            O seu mapa financeiro em calculadoras simples para apoiar decisoes antes, durante e depois da consultoria.
+            O seu mapa financeiro em calculadoras simples para apoiar decisões antes, durante e depois da consultoria.
           </p>
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-4">
-          <h2 className="text-base font-semibold text-slate-950">O que voce procura?</h2>
+          <h2 className="text-base font-semibold text-slate-950">O que você procura?</h2>
           <p className="text-sm text-slate-500">Escolha uma ferramenta e comece sem cadastro.</p>
         </div>
 

@@ -74,7 +74,7 @@ export function CadastroPage() {
       return;
     }
     if (result.reason === 'duplicate') {
-      toast.error('Este email já está cadastrado. Faça login ou recupere sua senha.');
+      toast.error('Este e-mail já está cadastrado. Faça login ou recupere sua senha.');
       return;
     }
     if (result.reason === 'honeypot') {
@@ -133,7 +133,7 @@ export function CadastroPage() {
           )}
         </FormField>
 
-        <FormField label="Dependentes (idades)"
+          <FormField label="Dependentes (idades)"
                    tooltip="Adicione filhos ou outros dependentes financeiros"
                    error={errors.dependentes?.message}>
           {() => (
@@ -168,7 +168,7 @@ export function CadastroPage() {
         </FormField>
 
         <div className="flex gap-2">
-          <FormField label="Cidade" tooltip="Influencia custo de vida" error={errors.cidade?.message}>
+        <FormField label="Cidade" tooltip="Influencia custo de vida" error={errors.cidade?.message}>
             {({ inputId }) => (
               <input id={inputId} {...register('cidade')}
                      className="w-full border border-gray-300 rounded-lg px-3 py-2" />
@@ -186,7 +186,7 @@ export function CadastroPage() {
           )}
         </FormField>
 
-        <FormField label="Email" tooltip="Será seu login. Cuidado com typos." error={errors.email?.message}>
+        <FormField label="E-mail" tooltip="Será seu login. Cuidado com typos." error={errors.email?.message}>
           {({ inputId }) => (
             <input id={inputId} type="email" autoComplete="email" {...register('email')}
                    className="w-full border border-gray-300 rounded-lg px-3 py-2" />

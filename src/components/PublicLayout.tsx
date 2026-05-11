@@ -7,7 +7,7 @@ const navLinks = [
   { to: '/', label: 'Ferramentas' },
   { to: '/investimentos', label: 'Investimentos' },
   { to: '/aposentadoria', label: 'Aposentadoria' },
-  { to: '/salario', label: 'Salario' },
+  { to: '/salario', label: 'Salário' },
 ]
 
 export default function PublicLayout() {
@@ -52,7 +52,7 @@ export default function PublicLayout() {
                 to="/login"
                 className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition-colors hover:border-slate-400 hover:bg-slate-50"
               >
-                Area do cliente
+                Área do cliente
               </Link>
             </div>
           </div>

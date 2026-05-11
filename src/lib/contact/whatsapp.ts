@@ -10,13 +10,13 @@ type Context =
 
 const TEMPLATES: Record<Context, (vars: Record<string, string>) => string> = {
   aguardando: ({ nome }) =>
-    `Ola Caio, sou ${nome || '<seu nome>'} e quero saber sobre o status do meu cadastro.`,
-  liberado: () => 'Ola Caio, fui liberado e quero combinar proximos passos.',
-  email_errado: () => 'Ola Caio, errei o email no cadastro e preciso refazer.',
+    `Olá Caio, sou ${nome || '<seu nome>'} e quero saber sobre o status do meu cadastro.`,
+  liberado: () => 'Olá Caio, fui liberado e quero combinar próximos passos.',
+  email_errado: () => 'Olá Caio, errei o e-mail no cadastro e preciso refazer.',
   orfao: ({ email }) =>
-    `Ola Caio, deu erro no meu cadastro (sou ${email || '<seu email>'}).`,
+    `Olá Caio, deu erro no meu cadastro (sou ${email || '<seu e-mail>'}).`,
   duvida_geral: () => '',
-  conta_excluida: () => 'Ola Caio, tenho uma duvida sobre minha conta excluida.',
+  conta_excluida: () => 'Olá Caio, tenho uma dúvida sobre minha conta excluída.',
 }
 
 export function whatsappUrl(context: Context, vars: Record<string, string> = {}): string {

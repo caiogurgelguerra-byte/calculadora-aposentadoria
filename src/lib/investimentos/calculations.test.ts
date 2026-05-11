@@ -283,7 +283,7 @@ describe('calculateInvestimentos', () => {
       new Date(2026, 0, 31)
     )
 
-    expect(state.result!.warnings).toContain('IOF nao considerado para lotes com menos de 30 dias.')
+    expect(state.result!.warnings).toContain('IOF não considerado para lotes com menos de 30 dias.')
   })
 
   it('uses cleaner comparison labels for end users', () => {
@@ -291,7 +291,7 @@ describe('calculateInvestimentos', () => {
 
     expect(state.result!.rows.map(row => row.label)).toEqual([
       'Seu investimento',
-      'Poupanca',
+      'Poupança',
       'CDB (100% do CDI)',
       'LCI/LCA (85% do CDI)',
     ])

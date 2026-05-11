@@ -251,11 +251,11 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
   const monthlyContribution = inputs.hasMonthlyContribution ? inputs.monthlyContribution : 0
 
   if (inputs.initialAmount < 0 || inputs.initialAmount > MAX_MONEY) {
-    errors.initialAmount = 'Informe um valor inicial valido.'
+    errors.initialAmount = 'Informe um valor inicial válido.'
   }
 
   if (inputs.monthlyContribution < 0 || inputs.monthlyContribution > MAX_MONEY) {
-    errors.monthlyContribution = 'Informe um aporte mensal valido.'
+    errors.monthlyContribution = 'Informe um aporte mensal válido.'
   }
 
   if (inputs.initialAmount <= 0 && monthlyContribution <= 0) {
@@ -263,7 +263,7 @@ export function normalizeInputs(inputs: InvestimentosInputs, startDate = new Dat
   }
 
   if (!Number.isInteger(termMonths) || termMonths < 1 || termMonths > MAX_TERM_MONTHS) {
-    errors.termValue = 'Informe um prazo valido.'
+    errors.termValue = 'Informe um prazo válido.'
   }
 
   validateRateField(
@@ -352,7 +352,7 @@ export function calculateInvestimentos(inputs: InvestimentosInputs, startDate = 
     },
     {
       id: 'savings',
-      label: 'Poupanca',
+      label: 'Poupança',
       monthlyRate: savingsMonthlyRate,
       taxable: false,
     },
@@ -403,7 +403,7 @@ export function calculateInvestimentos(inputs: InvestimentosInputs, startDate = 
 
   const warnings: string[] = []
   if (simulationByProduct.some(item => item.hasTaxablePositiveYieldLotUnder30Days)) {
-    warnings.push('IOF nao considerado para lotes com menos de 30 dias.')
+    warnings.push('IOF não considerado para lotes com menos de 30 dias.')
   }
 
   const result: CalculationResult = {

@@ -8,7 +8,7 @@ export function Footer() {
         <p>© 2026 Meu Mapa Financeiro · Caio Guerra</p>
         <p>
           <Link to="/privacidade" className="hover:text-gray-900">
-            Politica de Privacidade
+            Política de Privacidade
           </Link>
           {' · '}
           <Link to="/termos" className="hover:text-gray-900">

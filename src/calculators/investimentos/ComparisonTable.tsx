@@ -22,14 +22,14 @@ export default function ComparisonTable({ rows }: Props) {
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-[720px] w-full text-sm">
-          <caption className="sr-only">Comparativo liquido final dos investimentos</caption>
+          <caption className="sr-only">Comparativo líquido final dos investimentos</caption>
           <thead className="bg-slate-50 text-slate-500">
             <tr>
               <th className="text-left font-semibold px-4 py-3">Alternativa</th>
               <th className="text-right font-semibold px-4 py-3">Valor bruto</th>
               <th className="text-right font-semibold px-4 py-3">Imposto</th>
-              <th className="text-right font-semibold px-4 py-3">Valor liquido</th>
-              <th className="text-right font-semibold px-4 py-3">Dif. liquida vs seu investimento</th>
+              <th className="text-right font-semibold px-4 py-3">Valor líquido</th>
+              <th className="text-right font-semibold px-4 py-3">Dif. líquida vs seu investimento</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">

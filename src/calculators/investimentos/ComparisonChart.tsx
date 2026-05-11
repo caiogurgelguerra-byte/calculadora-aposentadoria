@@ -24,7 +24,7 @@ function compactCurrency(value: number): string {
 
 export default function ComparisonChart({ simulation, rows }: Props) {
   const finalRows = rows.map((row) => `${row.label}: ${formatCurrency(row.netFinalValue)}`).join(' | ')
-  const savingsLabel = rows.find((row) => row.id === 'savings')?.label ?? 'Poupanca'
+  const savingsLabel = rows.find((row) => row.id === 'savings')?.label ?? 'Poupança'
   const cdbLabel = rows.find((row) => row.id === 'cdb_100_cdi')?.label ?? 'CDB'
   const lciLcaLabel = rows.find((row) => row.id === 'lci_lca_85_cdi')?.label ?? 'LCI/LCA'
 
@@ -34,13 +34,13 @@ export default function ComparisonChart({ simulation, rows }: Props) {
       aria-labelledby="investment-chart-title"
     >
       <h3 id="investment-chart-title" className="text-sm font-semibold text-slate-900">
-        Evolucao bruta ao longo do prazo
+        Evolução bruta ao longo do prazo
       </h3>
       <p className="mt-1 text-xs text-slate-500">
-        O grafico mostra a tendencia bruta. Para decidir, compare o valor liquido na tabela.
+        O gráfico mostra a tendência bruta. Para decidir, compare o valor líquido na tabela.
       </p>
       <p className="sr-only" data-testid="chart-summary">
-        Valores liquidos finais: {finalRows}
+        Valores líquidos finais: {finalRows}
       </p>
 
       <div className="h-72 sm:h-80 mt-4" data-testid="investment-chart">
@@ -51,7 +51,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
             <YAxis tickFormatter={compactCurrency} tick={{ fontSize: 10, fill: '#94a3b8' }} width={72} />
             <Tooltip
               formatter={(value: number) => formatCurrency(value)}
-              labelFormatter={(label) => `Mes ${label}`}
+              labelFormatter={(label) => `Mês ${label}`}
               contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: 12 }}
             />
             <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} />

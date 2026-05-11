@@ -26,14 +26,14 @@ function toPercentInputValue(value: number | null): string {
 
 function getCdiHelperText(cdiSource: ProjectedCdiSource): string {
   if (cdiSource === 'bcb_focus') {
-    return 'Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.'
+    return 'Este é o CDI médio considerado para o prazo escolhido. Você pode ajustar.'
   }
 
   if (cdiSource === 'local_default_unavailable') {
-    return 'Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.'
+    return 'Este é o CDI médio considerado para o prazo escolhido. Você pode ajustar.'
   }
 
-  return 'Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.'
+  return 'Este é o CDI médio considerado para o prazo escolhido. Você pode ajustar.'
 }
 
 export default function InputForm({ value, errors, onChange, onCdiManualChange, cdiSource }: Props) {
@@ -120,7 +120,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
     <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm space-y-4">
       <div>
         <h2 className="text-base font-semibold text-slate-950">Dados do investimento</h2>
-        <p className="mt-1 text-xs text-slate-500">Use valores aproximados para comparar cenarios.</p>
+        <p className="mt-1 text-xs text-slate-500">Use valores aproximados para comparar cenários.</p>
       </div>
 
       <label className="flex flex-col gap-1">
@@ -185,7 +185,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
                 {...inputErrorProps('monthlyContribution')}
               />
             </div>
-            <p className="text-xs text-gray-500">Aporte considerado no fim de cada mes.</p>
+            <p className="text-xs text-gray-500">Aporte considerado no fim de cada mês.</p>
             {renderError('monthlyContribution')}
           </label>
         ) : null}
@@ -309,9 +309,9 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
       {value.rateType === 'cdi_percent' ? (
         <>
           <div className="pt-1 border-t border-slate-100">
-            <p className="text-sm font-semibold text-slate-800">Premissas de comparacao</p>
+            <p className="text-sm font-semibold text-slate-800">Premissas de comparação</p>
             <p className="text-xs text-slate-500 mt-1">
-              Ajuste os percentuais usados como referencia para CDB e LCI/LCA.
+              Ajuste os percentuais usados como referência para CDB e LCI/LCA.
             </p>
           </div>
 
@@ -420,7 +420,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
           </div>
-          <p className="text-xs text-gray-500">Taxa anual fixa da aplicacao. Exemplo: 12,00.</p>
+          <p className="text-xs text-gray-500">Taxa anual fixa da aplicação. Exemplo: 12,00.</p>
           {renderError('fixedAnnualPercent')}
         </label>
       ) : null}
@@ -450,7 +450,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
             </div>
-            <p className="text-xs text-gray-500">Usado apenas para simulacoes IPCA + taxa.</p>
+            <p className="text-xs text-gray-500">Usado apenas para simulações IPCA + taxa.</p>
             {renderError('ipcaAnnualPercent')}
           </label>
 
@@ -477,7 +477,7 @@ export default function InputForm({ value, errors, onChange, onCdiManualChange, 
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">%</span>
             </div>
-            <p className="text-xs text-gray-500">Ganho real esperado alem da inflacao. Exemplo: 6,00.</p>
+            <p className="text-xs text-gray-500">Ganho real esperado além da inflação. Exemplo: 6,00.</p>
             {renderError('ipcaSpreadAnnualPercent')}
           </label>
         </>

@@ -45,11 +45,11 @@ export function ListaClientesPage() {
     setBusy((b) => ({ ...b, [c.id]: false }));
     if (!r.ok) { toast.error('Falha ao liberar.'); return; }
     if (r.data?.alreadyReleased) {
-      toast('Cliente já estava liberado (email pode ter sido enviado anteriormente).');
+      toast('Cliente já estava liberado (e-mail pode ter sido enviado anteriormente).');
     } else if (r.data?.emailSent) {
-      toast.success('Cliente liberado. Email enviado.');
+      toast.success('Cliente liberado. E-mail enviado.');
     } else {
-      toast.warning('Cliente liberado, mas o email falhou. Avise por WhatsApp.');
+      toast.warning('Cliente liberado, mas o e-mail falhou. Avise por WhatsApp.');
     }
     await reload();
   }
@@ -72,7 +72,7 @@ export function ListaClientesPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nome ou email"
+          placeholder="Buscar por nome ou e-mail"
           className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
         />
         <select value={filter} onChange={(e) => setFilter(e.target.value as ClientStatus | 'todos')}
@@ -87,7 +87,7 @@ export function ListaClientesPage() {
           <caption className="sr-only">Lista de clientes</caption>
           <thead className="bg-gray-100">
             <tr className="text-left text-sm">
-              <th className="p-2">Nome</th><th className="p-2">Email</th>
+              <th className="p-2">Nome</th><th className="p-2">E-mail</th>
               <th className="p-2">Status</th><th className="p-2">Cadastrado</th>
               <th className="p-2">Ações</th>
             </tr>

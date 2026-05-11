@@ -17,14 +17,14 @@ export function RecuperarSenhaPage() {
       setSent(true);
       return;
     }
-    toast.error('Falha ao enviar email. Tente novamente.');
+    toast.error('Falha ao enviar e-mail. Tente novamente.');
   }
 
   if (sent) {
     return (
       <div className="max-w-md mx-auto p-6 text-center">
-        <h1 className="text-2xl font-semibold mb-4">Email enviado</h1>
-        <p>Se o email estiver cadastrado, você receberá um link para redefinir a senha em instantes.</p>
+        <h1 className="text-2xl font-semibold mb-4">E-mail enviado</h1>
+        <p>Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha em instantes.</p>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export function RecuperarSenhaPage() {
       <h1 className="text-2xl font-semibold mb-4">Recuperar senha</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="text-sm text-gray-700">Email cadastrado</label>
+        <label className="text-sm text-gray-700">E-mail cadastrado</label>
           <input type="email" autoComplete="email" {...register('email')}
                  className="w-full border rounded-lg px-3 py-2" />
           {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}

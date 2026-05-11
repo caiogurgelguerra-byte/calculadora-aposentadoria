@@ -23,7 +23,7 @@ export function ConfirmeEmailPage() {
   async function handleResend() {
     const result = await resendConfirmation(email);
     if (result.ok) {
-      toast.success('Email reenviado. Verifique sua caixa de entrada.');
+      toast.success('E-mail reenviado. Verifique sua caixa de entrada.');
       setCooldown(COOLDOWN_S);
       return;
     }
@@ -33,12 +33,12 @@ export function ConfirmeEmailPage() {
       setCooldown(COOLDOWN_S);
       return;
     }
-    toast.error('Falha ao reenviar email.');
+    toast.error('Falha ao reenviar e-mail.');
   }
 
   return (
     <div className="max-w-md mx-auto p-6 text-center">
-      <h1 ref={h1Ref} tabIndex={-1} className="text-2xl font-semibold mb-4">Confirme seu email</h1>
+      <h1 ref={h1Ref} tabIndex={-1} className="text-2xl font-semibold mb-4">Confirme seu e-mail</h1>
       <p className="text-gray-700 mb-2">
         Enviamos um link de confirmação para <strong>{email}</strong>. Clique nele para ativar sua conta.
       </p>
@@ -49,10 +49,10 @@ export function ConfirmeEmailPage() {
         disabled={cooldown > 0}
         className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
       >
-        {cooldown > 0 ? `Reenviar em ${cooldown}s...` : 'Reenviar email de confirmação'}
+        {cooldown > 0 ? `Reenviar em ${cooldown}s...` : 'Reenviar e-mail de confirmação'}
       </button>
       <p className="text-sm text-gray-600 mt-6">
-        Errou o email?{' '}
+        Errou o e-mail?{' '}
         <a href={whatsappUrl('email_errado')} target="_blank" rel="noreferrer"
            className="text-blue-600 underline">
           Fale comigo no WhatsApp

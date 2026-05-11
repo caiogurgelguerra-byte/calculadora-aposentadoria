@@ -34,7 +34,7 @@ export const camposPessoaisSchema = z.object({
 });
 
 export const cadastroSchema = camposPessoaisSchema.extend({
-  email: z.string().email('Email inválido'),
+  email: z.string().email('E-mail inválido'),
   senha: z.string().min(8, 'Mínimo 8 caracteres'),
   confirmar_senha: z.string(),
   aceito_privacidade: z.literal(true, {

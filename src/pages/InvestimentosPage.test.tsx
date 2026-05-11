@@ -37,9 +37,9 @@ describe('InvestimentosPage', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '% do CDI do CDB' }), { target: { value: '100' } })
     fireEvent.change(screen.getByRole('textbox', { name: '% do CDI da LCI/LCA' }), { target: { value: '85' } })
 
-    expect(screen.getByText('Valor liquido no resgate')).toBeInTheDocument()
-    expect(screen.getByText('Evolucao bruta ao longo do prazo')).toBeInTheDocument()
-    expect(screen.getByText('Comparativo liquido final dos investimentos')).toBeInTheDocument()
+    expect(screen.getByText('Valor líquido no resgate')).toBeInTheDocument()
+    expect(screen.getByText('Evolução bruta ao longo do prazo')).toBeInTheDocument()
+    expect(screen.getByText('Comparativo líquido final dos investimentos')).toBeInTheDocument()
     expect(screen.getByTestId('comparison-row-custom')).toBeInTheDocument()
     expect(screen.getByTestId('comparison-row-cdb_100_cdi')).toBeInTheDocument()
   })
@@ -91,7 +91,7 @@ describe('InvestimentosPage', () => {
   it('shows editable benchmark inputs for CDB and LCI LCA', () => {
     renderPage()
 
-    expect(screen.getByText('Premissas de comparacao')).toBeInTheDocument()
+    expect(screen.getByText('Premissas de comparação')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '% do CDI do CDB' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '% do CDI da LCI/LCA' })).toBeInTheDocument()
   })
@@ -100,7 +100,7 @@ describe('InvestimentosPage', () => {
     renderPage()
 
     expect(
-      screen.getByText('Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.')
+      screen.getByText('Este é o CDI médio considerado para o prazo escolhido. Você pode ajustar.')
     ).toBeInTheDocument()
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
@@ -138,7 +138,7 @@ describe('route and home integration', () => {
       'href',
       'https://wa.me/5584996654671'
     )
-    expect(screen.getByRole('link', { name: 'Area do cliente' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'Área do cliente' })).toHaveAttribute('href', '/login')
     expect(screen.getByText('Ferramentas abertas')).toBeInTheDocument()
     expect(screen.queryByText(/CFP/i)).not.toBeInTheDocument()
   })

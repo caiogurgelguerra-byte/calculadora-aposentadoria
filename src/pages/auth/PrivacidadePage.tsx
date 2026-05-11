@@ -55,9 +55,9 @@ export function PrivacidadePage() {
             </tr>
             <tr>
               <td className="border border-gray-200 px-3 py-2">Contato</td>
-              <td className="border border-gray-200 px-3 py-2">Telefone, email</td>
-              <td className="border border-gray-200 px-3 py-2">Comunicação direta sobre o planejamento; envio de emails transacionais</td>
-              <td className="border border-gray-200 px-3 py-2">V — execução de contrato; IX — legítimo interesse para email transacional</td>
+              <td className="border border-gray-200 px-3 py-2">Telefone, e-mail</td>
+              <td className="border border-gray-200 px-3 py-2">Comunicação direta sobre o planejamento; envio de e-mails transacionais</td>
+              <td className="border border-gray-200 px-3 py-2">V — execução de contrato; IX — legítimo interesse para e-mail transacional</td>
             </tr>
             <tr>
               <td className="border border-gray-200 px-3 py-2">Acesso</td>
@@ -94,7 +94,7 @@ export function PrivacidadePage() {
       </p>
       <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1">
         <li><strong>Supabase Inc.</strong> (US-East) — hospedagem do banco e autenticação. Operador sob LGPD via DPA padrão Supabase aceito pelo controlador.</li>
-        <li><strong>Resend, Inc.</strong> (US) — envio de emails transacionais. Operador sob LGPD via DPA padrão Resend aceito pelo controlador.</li>
+        <li><strong>Resend, Inc.</strong> (US) — envio de e-mails transacionais. Operador sob LGPD via DPA padrão Resend aceito pelo controlador.</li>
       </ul>
       <p className="text-gray-700 mb-2">
         Os dois implicam <strong>transferência internacional de dados</strong> para os Estados Unidos (LGPD Art. 33). Base legal aplicada:
@@ -127,7 +127,7 @@ export function PrivacidadePage() {
           (assunto: "LGPD — direito do titular"). Responderemos em até <strong>15 dias úteis</strong>.
         </li>
         <li><strong>Correção dos próprios dados:</strong> disponível diretamente em <strong>Meus dados</strong> após login.</li>
-        <li><strong>Exclusão da conta:</strong> disponível em <strong>Meus dados → Excluir minha conta</strong> (a deleção do email/login é completada pelo controlador conforme runbook interno; você recebe confirmação por email).</li>
+        <li><strong>Exclusão da conta:</strong> disponível em <strong>Meus dados → Excluir minha conta</strong> (a deleção do e-mail/login é completada pelo controlador conforme runbook interno; você recebe confirmação por e-mail).</li>
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">7. Retenção</h2>

@@ -31,13 +31,13 @@ Deno.serve(async (req) => {
       return new Response('skipped', { status: 200 });
     }
 
-    // 3. Lookup email via service_role
+    // 3. Lookup e-mail via service_role
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
     const { data: u } = await admin.auth.admin.getUserById(r.id);
-    const email = u?.user?.email ?? '<email indisponível>';
+    const email = u?.user?.email ?? '<e-mail indisponível>';
 
     // 4. Enviar via Resend
     const resendKey = Deno.env.get('RESEND_API_KEY')!;
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     const text = `Novo lead cadastrado no Meu Mapa Financeiro.
 
 Nome: ${r.nome_completo}
-Email: ${email}
+E-mail: ${email}
 Cidade/UF: ${r.cidade}/${r.uf}
 
 Acesse o painel admin para revisar: ${appUrl}/admin

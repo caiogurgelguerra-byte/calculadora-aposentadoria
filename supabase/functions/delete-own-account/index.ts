@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       throw delErr;
     }
 
-    // 4. Disparar 2 emails em paralelo
+    // 4. Disparar 2 e-mails em paralelo
     const resendKey = Deno.env.get('RESEND_API_KEY')!;
     const adminEmail = Deno.env.get('ADMIN_NOTIFICATION_EMAIL')!;
     const ts = new Date().toISOString();
@@ -57,7 +57,7 @@ Em caso de dúvida, fale comigo: caio.gurgel.guerra@gmail.com.
       from: 'Meu Mapa Financeiro <noreply@meumapafinanceiro.ia.br>',
       to: adminEmail,
       subject: `Cliente solicitou exclusão LGPD — ${nome}`,
-      text: `Cliente ${nome} (id: ${user.id}, email: ${email}) usou o botão "Excluir minha conta" em ${ts}.
+      text: `Cliente ${nome} (id: ${user.id}, e-mail: ${email}) usou o botão "Excluir minha conta" em ${ts}.
 
 A exclusão de auth.users + profile já foi concluída tecnicamente.
 Resta: registrar na planilha LGPD Art. 37 (tipo_operacao=eliminacao_titular_self_service).

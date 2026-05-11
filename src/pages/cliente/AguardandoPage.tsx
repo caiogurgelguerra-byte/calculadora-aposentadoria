@@ -18,7 +18,7 @@ export function AguardandoPage() {
         reviso pessoalmente cada cliente antes de liberar o onboarding.
       </p>
       <p className="mb-4">
-        Vou revisar nos próximos dias úteis e te aviso por email quando o acesso estiver liberado.
+        Vou revisar nos próximos dias úteis e te aviso por e-mail quando o acesso estiver liberado.
       </p>
       <p className="mb-6">
         Se tiver dúvidas, fale comigo no{' '}

@@ -172,7 +172,7 @@ function MeusDadosForm({ profile, refetch }: FormProps) {
         title="Excluir minha conta"
         description={
           <p>
-            Esta ação é irreversível. Excluiremos seu cadastro agora. Você receberá email
+            Esta ação é irreversível. Excluiremos seu cadastro agora. Você receberá e-mail
             de confirmação em até 15 dias úteis (LGPD Art. 18 §6).
           </p>
         }

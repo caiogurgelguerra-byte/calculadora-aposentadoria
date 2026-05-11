@@ -26,17 +26,17 @@ export function LoginPage() {
     if (!result.ok) {
       const msg = result.error.message.toLowerCase();
       if (msg.includes('email not confirmed') || msg.includes('confirm')) {
-        toast.error('Confirme seu email antes de fazer login.', {
+        toast.error('Confirme seu e-mail antes de fazer login.', {
           action: {
-            label: 'Reenviar email',
+            label: 'Reenviar e-mail',
             onClick: async () => {
               const r = await resendConfirmation(form.email);
-              toast[r.ok ? 'success' : 'error'](r.ok ? 'Email reenviado.' : 'Falha ao reenviar.');
+              toast[r.ok ? 'success' : 'error'](r.ok ? 'E-mail reenviado.' : 'Falha ao reenviar.');
             },
           },
         });
       } else {
-        toast.error('Email ou senha incorretos.');
+        toast.error('E-mail ou senha incorretos.');
       }
       return;
     }
@@ -51,7 +51,7 @@ export function LoginPage() {
       <h1 ref={h1Ref} tabIndex={-1} className="text-2xl font-semibold mb-6">Entrar</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="text-sm text-gray-700">Email</label>
+          <label className="text-sm text-gray-700">E-mail</label>
           <input type="email" autoComplete="email" {...register('email')}
                  className="w-full border rounded-lg px-3 py-2" />
           {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
