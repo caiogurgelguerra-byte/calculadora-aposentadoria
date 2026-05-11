@@ -60,9 +60,11 @@ describe('route and home integration', () => {
     )
   })
 
-  it('app route renders investments page', () => {
+  it('app route renders investments page', async () => {
     window.history.pushState({}, '', '/investimentos')
     render(<App />)
-    expect(screen.getByRole('heading', { name: /calculadora de investimentos/i })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: /calculadora de investimentos/i })
+    ).toBeInTheDocument()
   })
 })
