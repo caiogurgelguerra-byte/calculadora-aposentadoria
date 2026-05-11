@@ -100,9 +100,7 @@ describe('InvestimentosPage', () => {
     renderPage()
 
     expect(
-      screen.getByText(
-        'Usando valor padrao local. Para publicar sem trafego direto ao BC, mantenha essa premissa editavel.'
-      )
+      screen.getByText('Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.')
     ).toBeInTheDocument()
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })

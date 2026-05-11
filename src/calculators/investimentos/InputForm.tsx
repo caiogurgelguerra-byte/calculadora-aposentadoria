@@ -26,14 +26,14 @@ function toPercentInputValue(value: number | null): string {
 
 function getCdiHelperText(cdiSource: ProjectedCdiSource): string {
   if (cdiSource === 'bcb_focus') {
-    return 'Preenchido com base no Focus/BC. Voce pode ajustar.'
+    return 'Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.'
   }
 
   if (cdiSource === 'local_default_unavailable') {
-    return 'Nao foi possivel carregar o Focus/BC agora. Usando valor padrao local. Voce pode ajustar.'
+    return 'Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.'
   }
 
-  return 'Usando valor padrao local. Para publicar sem trafego direto ao BC, mantenha essa premissa editavel.'
+  return 'Este e o CDI medio considerado para o prazo escolhido. Voce pode ajustar.'
 }
 
 export default function InputForm({ value, errors, onChange, onCdiManualChange, cdiSource }: Props) {
