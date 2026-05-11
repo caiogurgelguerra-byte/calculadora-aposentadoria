@@ -5,6 +5,18 @@ interface Props {
   rows: ComparisonResult[]
 }
 
+function formatSignedCurrency(value: number): string {
+  const abs = Math.abs(value).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  if (value > 0) return `+ ${abs}`
+  if (value < 0) return `- ${abs}`
+  return abs
+}
+
 export default function ComparisonTable({ rows }: Props) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -36,8 +48,16 @@ export default function ComparisonTable({ rows }: Props) {
                 <td className="px-4 py-3 text-right text-slate-600">{formatCurrency(row.grossFinalValue)}</td>
                 <td className="px-4 py-3 text-right text-slate-600">{formatCurrency(row.tax)}</td>
                 <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatCurrency(row.netFinalValue)}</td>
-                <td className="px-4 py-3 text-right text-slate-600">
-                  {formatCurrency(row.netDifferenceFromCustom)}
+                <td
+                  className={`px-4 py-3 text-right ${
+                    row.netDifferenceFromCustom > 0
+                      ? 'text-emerald-700'
+                      : row.netDifferenceFromCustom < 0
+                        ? 'text-rose-700'
+                        : 'text-slate-600'
+                  }`}
+                >
+                  {formatSignedCurrency(row.netDifferenceFromCustom)}
                 </td>
               </tr>
             ))}

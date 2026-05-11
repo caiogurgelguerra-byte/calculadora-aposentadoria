@@ -34,7 +34,7 @@ export default function ComparisonChart({ simulation, rows }: Props) {
         Evolucao bruta mes a mes
       </h3>
       <p className="text-xs text-gray-500 mt-1">
-        O grafico mostra valores brutos. A tabela abaixo compara os valores liquidos finais.
+        O grafico mostra valores brutos ao longo do tempo. A decisao final deve usar o valor liquido da tabela.
       </p>
       <p className="sr-only" data-testid="chart-summary">
         Valores liquidos finais: {finalRows}

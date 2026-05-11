@@ -14,7 +14,7 @@ export default function ResultCards({ result }: Props) {
   if (!custom) return null
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
       <div className="md:col-span-2 xl:col-span-1 bg-blue-900 text-white rounded-xl p-5 shadow-sm">
         <p className="text-xs text-blue-200 uppercase tracking-wide">Valor liquido final</p>
         <p className="text-2xl font-bold mt-2">{formatCurrency(custom.netFinalValue)}</p>
@@ -27,13 +27,18 @@ export default function ResultCards({ result }: Props) {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">Quanto rendeu</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Rendimento bruto</p>
         <p className="text-xl font-semibold text-emerald-700 mt-2">{formatCurrency(custom.grossYield)}</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <p className="text-xs text-gray-400 uppercase tracking-wide">Imposto estimado</p>
         <p className="text-xl font-semibold text-slate-800 mt-2">{formatCurrency(custom.tax)}</p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Rendimento liquido</p>
+        <p className="text-xl font-semibold text-slate-800 mt-2">{formatCurrency(custom.netYield)}</p>
       </div>
 
       {result.realGainEstimate !== undefined ? (
