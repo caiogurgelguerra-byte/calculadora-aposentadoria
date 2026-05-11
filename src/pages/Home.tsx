@@ -3,15 +3,21 @@ import { Link } from 'react-router-dom'
 const CALCULATORS = [
   {
     to: '/aposentadoria',
-    icon: '🏦',
+    icon: 'R$',
     title: 'Calculadora de Aposentadoria',
-    description: 'Descubra quanto poupar por mês para se aposentar com a renda que você quer',
+    description: 'Descubra quanto poupar por mes para se aposentar com a renda que voce quer',
   },
   {
     to: '/salario',
-    icon: '💰',
-    title: 'Calculadora de Salário Líquido',
-    description: 'Veja exatamente quanto cai na sua conta após INSS e IR',
+    icon: 'R$',
+    title: 'Calculadora de Salario Liquido',
+    description: 'Veja exatamente quanto cai na sua conta apos INSS e IR',
+  },
+  {
+    to: '/investimentos',
+    icon: '%',
+    title: 'Calculadora de Investimentos',
+    description: 'Compare seu investimento com poupanca, CDB e LCI/LCA',
   },
 ]
 
@@ -22,8 +28,8 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-slate-800">Seu Mapa Financeiro</h1>
         <p className="text-slate-500 mt-2">Ferramentas para planejar sua vida financeira</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-        {CALCULATORS.map(calc => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {CALCULATORS.map((calc) => (
           <Link
             key={calc.to}
             to={calc.to}
@@ -32,7 +38,7 @@ export default function Home() {
             <span className="text-3xl">{calc.icon}</span>
             <h2 className="text-lg font-semibold text-slate-800">{calc.title}</h2>
             <p className="text-sm text-slate-500">{calc.description}</p>
-            <span className="mt-auto text-sm font-medium text-blue-600">Acessar →</span>
+            <span className="mt-auto text-sm font-medium text-blue-600">Acessar -&gt;</span>
           </Link>
         ))}
       </div>

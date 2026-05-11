@@ -10,6 +10,7 @@ import { RequireAdmin } from './components/RequireAdmin';
 
 import Home from './pages/Home';
 import AposentadoriaPage from './pages/AposentadoriaPage';
+import InvestimentosPage from './pages/InvestimentosPage';
 import SalarioPage from './pages/SalarioPage';
 
 import { CadastroPage } from './pages/auth/CadastroPage';
@@ -38,6 +39,7 @@ export function App() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/aposentadoria" element={<AposentadoriaPage />} />
+            <Route path="/investimentos" element={<InvestimentosPage />} />
             <Route path="/salario" element={<SalarioPage />} />
             <Route path="/privacidade" element={<PrivacidadePage />} />
             <Route path="/termos" element={<TermosPage />} />
