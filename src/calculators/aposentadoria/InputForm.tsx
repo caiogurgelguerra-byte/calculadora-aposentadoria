@@ -25,6 +25,11 @@ function formatMoneyDigits(value: string): string {
   return numeric.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function formatMoneyNumber(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return ''
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 function calcRealReturn(bruto: number, ir: number, inflacao: number): number {
   const netNominal = bruto * (1 - ir / 100)
   const real = ((1 + netNominal / 100) / (1 + inflacao / 100) - 1) * 100
@@ -134,11 +139,11 @@ export default function InputForm({ onChange }: Props) {
             placeholder="0,00"
             value={patrimonioStr}
             onChange={e => {
-              const next = formatMoneyDigits(e.target.value.replace(/[^\d,.-]/g, ''))
+              const next = e.target.value.replace(/[^\d,.-]/g, '')
               setPatrimonioStr(next)
               update('patrimonioAtual', parseMoneyDigits(next))
             }}
-            onBlur={() => setPatrimonioStr(inputs.patrimonioAtual > 0 ? formatMoneyDigits(String(inputs.patrimonioAtual)) : '')}
+            onBlur={() => setPatrimonioStr(formatMoneyNumber(inputs.patrimonioAtual))}
           />
         </div>
       </label>

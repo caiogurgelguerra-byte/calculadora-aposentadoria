@@ -6,17 +6,19 @@ A calculadora de aposentadoria possui um campo publico de "Patrimonio atual inve
 
 ## Design
 
-O campo continuara usando entrada textual com mascara monetaria em `pt-BR`, para manter o padrao visual atual. O campo de patrimonio atual deve aceitar qualquer valor monetario valido digitado ou colado, preservando reais e centavos no estado `patrimonioAtual`.
+O campo continuara usando entrada textual, mas nao deve aplicar a mascara enquanto a pessoa digita. Durante a edicao, o texto digitado fica livre para evitar que a mascara reposicione ou reescreva o valor. O estado `patrimonioAtual` deve ser atualizado em tempo real com o numero correspondente. Ao sair do campo, o valor deve ser formatado em `pt-BR`.
 
 Exemplos esperados:
 
-- `1000` vira `1.000,00`;
-- `12345,67` vira `12.345,67`;
-- `155500` vira `155.500,00`;
+- durante a digitacao, `1000` permanece `1000`;
+- ao sair do campo, `1000` vira `1.000,00`;
+- durante a digitacao, `12345,67` permanece `12345,67`;
+- ao sair do campo, `12345,67` vira `12.345,67`;
+- ao sair do campo, `155500` vira `155.500,00`;
 - valores com centavos devem ser preservados nesse campo.
 
 O campo de renda mensal desejada permanece inalterado e continua aceitando valores monetarios livres.
 
 ## Testes
 
-O teste de `InputForm` deve cobrir a formatacao livre no campo de patrimonio atual e garantir que o valor enviado em `onChange` preserve o valor monetario digitado. A suite focada de aposentadoria deve ser executada antes e depois da implementacao, seguindo TDD.
+O teste de `InputForm` deve cobrir a digitacao livre no campo de patrimonio atual, a formatacao no blur e o valor enviado em `onChange`. A suite focada de aposentadoria deve ser executada antes e depois da implementacao, seguindo TDD.

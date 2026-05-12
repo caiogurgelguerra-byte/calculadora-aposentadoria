@@ -14,21 +14,35 @@ function buildResults(): CalculationResults {
 }
 
 describe('InputForm', () => {
-  it('formats money fields with thousands separator while typing', () => {
+  it('formats monthly income with thousands separator while typing', () => {
     const onChange = vi.fn()
     render(<InputForm onChange={onChange} />)
 
     fireEvent.change(screen.getByPlaceholderText('10.000,00'), { target: { value: '10000' } })
     expect(screen.getByDisplayValue('10.000,00')).toBeInTheDocument()
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ rendaMensal: 10000 }))
+  })
 
-    fireEvent.change(screen.getByPlaceholderText('0,00'), { target: { value: '12345,67' } })
+  it('keeps current wealth free while typing and formats it on blur', () => {
+    const onChange = vi.fn()
+    render(<InputForm onChange={onChange} />)
+
+    const patrimonioInput = screen.getByPlaceholderText('0,00')
+
+    fireEvent.change(patrimonioInput, { target: { value: '12345,67' } })
+    expect(screen.getByDisplayValue('12345,67')).toBeInTheDocument()
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ patrimonioAtual: 12345.67 }))
+
+    fireEvent.blur(patrimonioInput)
     expect(screen.getByDisplayValue('12.345,67')).toBeInTheDocument()
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ patrimonioAtual: 12345.67 }))
 
-    fireEvent.change(screen.getByPlaceholderText('0,00'), { target: { value: '155500' } })
-    expect(screen.getByDisplayValue('155.500,00')).toBeInTheDocument()
+    fireEvent.change(patrimonioInput, { target: { value: '155500' } })
+    expect(screen.getByDisplayValue('155500')).toBeInTheDocument()
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ patrimonioAtual: 155500 }))
+
+    fireEvent.blur(patrimonioInput)
+    expect(screen.getByDisplayValue('155.500,00')).toBeInTheDocument()
   })
 })
 
