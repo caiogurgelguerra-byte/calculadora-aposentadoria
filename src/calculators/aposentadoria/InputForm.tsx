@@ -6,22 +6,21 @@ interface Props {
 }
 
 function parseMoneyDigits(value: string): number {
-  const digits = extractMoneyDigits(value)
-  return digits ? Number(digits) : 0
-}
+  const normalized = value
+    .replace(/\s/g, '')
+    .replace(/^R\$/i, '')
+    .replace(/\./g, '')
+    .replace(',', '.')
 
-function extractMoneyDigits(value: string): string {
-  const digits = value.replace(/\D/g, '')
-  if (!digits) return ''
-  if (value.includes(',')) {
-    return digits.length > 2 ? digits.slice(0, -2).replace(/^0+/, '') || '0' : ''
-  }
-  return digits.replace(/^0+/, '') || '0'
+  if (!normalized) return 0
+
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) ? parsed : 0
 }
 
 function formatMoneyDigits(value: string): string {
   if (!value) return ''
-  const numeric = Number(value)
+  const numeric = parseMoneyDigits(value)
   if (!Number.isFinite(numeric)) return ''
   return numeric.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
@@ -85,12 +84,12 @@ export default function InputForm({ onChange }: Props) {
           <span className="text-gray-400 mr-1 text-sm">R$</span>
           <input
             type="text"
-            inputMode="numeric"
+            inputMode="decimal"
             className="flex-1 outline-none text-sm"
             placeholder="10.000,00"
             value={rendaMensalStr}
             onChange={e => {
-              const next = formatMoneyDigits(extractMoneyDigits(e.target.value))
+              const next = formatMoneyDigits(e.target.value.replace(/[^\d,.-]/g, ''))
               setRendaMensalStr(next)
               update('rendaMensal', parseMoneyDigits(next))
             }}
@@ -130,12 +129,12 @@ export default function InputForm({ onChange }: Props) {
           <span className="text-gray-400 mr-1 text-sm">R$</span>
           <input
             type="text"
-            inputMode="numeric"
+            inputMode="decimal"
             className="flex-1 outline-none text-sm"
             placeholder="0,00"
             value={patrimonioStr}
             onChange={e => {
-              const next = formatMoneyDigits(extractMoneyDigits(e.target.value))
+              const next = formatMoneyDigits(e.target.value.replace(/[^\d,.-]/g, ''))
               setPatrimonioStr(next)
               update('patrimonioAtual', parseMoneyDigits(next))
             }}

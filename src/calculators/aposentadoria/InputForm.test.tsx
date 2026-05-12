@@ -22,9 +22,13 @@ describe('InputForm', () => {
     expect(screen.getByDisplayValue('10.000,00')).toBeInTheDocument()
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ rendaMensal: 10000 }))
 
-    fireEvent.change(screen.getByPlaceholderText('0,00'), { target: { value: '100000' } })
-    expect(screen.getByDisplayValue('100.000,00')).toBeInTheDocument()
-    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ patrimonioAtual: 100000 }))
+    fireEvent.change(screen.getByPlaceholderText('0,00'), { target: { value: '12345,67' } })
+    expect(screen.getByDisplayValue('12.345,67')).toBeInTheDocument()
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ patrimonioAtual: 12345.67 }))
+
+    fireEvent.change(screen.getByPlaceholderText('0,00'), { target: { value: '155500' } })
+    expect(screen.getByDisplayValue('155.500,00')).toBeInTheDocument()
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ patrimonioAtual: 155500 }))
   })
 })
 
