@@ -14,11 +14,25 @@ function buildResults(): CalculationResults {
 }
 
 describe('InputForm', () => {
-  it('formats monthly income with thousands separator while typing', () => {
+  it('keeps monthly income free while typing and formats it on blur', () => {
     const onChange = vi.fn()
     render(<InputForm onChange={onChange} />)
 
-    fireEvent.change(screen.getByPlaceholderText('10.000,00'), { target: { value: '10000' } })
+    const rendaInput = screen.getByPlaceholderText('10.000,00')
+
+    fireEvent.change(rendaInput, { target: { value: '12345,67' } })
+    expect(screen.getByDisplayValue('12345,67')).toBeInTheDocument()
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ rendaMensal: 12345.67 }))
+
+    fireEvent.blur(rendaInput)
+    expect(screen.getByDisplayValue('12.345,67')).toBeInTheDocument()
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ rendaMensal: 12345.67 }))
+
+    fireEvent.change(rendaInput, { target: { value: '10000' } })
+    expect(screen.getByDisplayValue('10000')).toBeInTheDocument()
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ rendaMensal: 10000 }))
+
+    fireEvent.blur(rendaInput)
     expect(screen.getByDisplayValue('10.000,00')).toBeInTheDocument()
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ rendaMensal: 10000 }))
   })

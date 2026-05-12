@@ -18,13 +18,6 @@ function parseMoneyDigits(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-function formatMoneyDigits(value: string): string {
-  if (!value) return ''
-  const numeric = parseMoneyDigits(value)
-  if (!Number.isFinite(numeric)) return ''
-  return numeric.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
 function formatMoneyNumber(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return ''
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -94,11 +87,11 @@ export default function InputForm({ onChange }: Props) {
             placeholder="10.000,00"
             value={rendaMensalStr}
             onChange={e => {
-              const next = formatMoneyDigits(e.target.value.replace(/[^\d,.-]/g, ''))
+              const next = e.target.value.replace(/[^\d,.-]/g, '')
               setRendaMensalStr(next)
               update('rendaMensal', parseMoneyDigits(next))
             }}
-            onBlur={() => setRendaMensalStr(inputs.rendaMensal > 0 ? formatMoneyDigits(String(inputs.rendaMensal)) : '')}
+            onBlur={() => setRendaMensalStr(formatMoneyNumber(inputs.rendaMensal))}
           />
         </div>
       </label>
